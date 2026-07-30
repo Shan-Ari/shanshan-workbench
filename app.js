@@ -46,7 +46,8 @@ const PAGES = [
   { id: 'ledger', ic: '🧾', nm: '记账' },
   { id: 'calendar', ic: '📅', nm: '日程日历' },
   { id: 'weekly', ic: '🗓️', nm: '周复盘' },
-  { id: 'monthly', ic: '🌙', nm: '月复盘' }
+  { id: 'monthly', ic: '🌙', nm: '月复盘' },
+  { id: 'countdown', ic: '⏳', nm: '倒计时' }
 ];
 const QUICK = [
   { id: 'plan', ic: '✅', nm: '待办清单' },
@@ -55,7 +56,7 @@ const QUICK = [
   { id: 'book', ic: '📖', nm: '读书笔记' }
 ];
 /* 页面临时状态 */
-const S = { engTab: 'speak', planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes' };
+const S = { engTab: 'speak', planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', cdEdit: null };
 
 /* ============ 开屏页数据 ============ */
 const QUOTES = [
@@ -251,3 +252,84 @@ function moveOverdue() {
   all.forEach(p => { if (p.date < today() && !p.done) p.date = today(); });
   store.s('plans', all); S.planDate = today(); render();
 }
+
+/* ============ 倒计时 ============ */
+function nextDate(cd) {
+  const [y, m, d] = cd.date.split('-').map(Number);
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  if (cd.repeat === 'none') return new Date(y, m - 1, d);
+  if (cd.repeat === 'year') {
+    let t = new Date(now.getFullYear(), m - 1, d);
+    if (t < now) t = new Date(now.getFullYear() + 1, m - 1, d);
+    return t;
+  }
+  let y2 = now.getFullYear(), m2 = now.getMonth();
+  let t = new Date(y2, m2, d);
+  if (t < now) { m2++; if (m2 > 11) { m2 = 0; y2++; } t = new Date(y2, m2, d); }
+  return t;
+}
+function daysLeft(cd) { const t = nextDate(cd); const now = new Date(); now.setHours(0, 0, 0, 0); return Math.round((t - now) / 864e5); }
+function nextDateStr(cd) { const t = nextDate(cd); return t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate()); }
+
+const CD_TYPES = [['birthday', '生日', 'p'], ['payday', '发工资', 'y'], ['anniversary', '纪念日', 'b'], ['love', '恋爱日', 'r'], ['custom', '自定义', 'g']];
+const CD_REPS = [['none', '一次性'], ['year', '每年重复'], ['month', '每月重复']];
+
+function render_countdown() {
+  const list = store.g('countdown', []);
+  const items = list.map(c => ({ c, days: daysLeft(c) })).sort((a, b) => a.days - b.days);
+  const edit = S.cdEdit ? list.find(x => x.id === S.cdEdit) : null;
+  const typeOf = t => CD_TYPES.find(x => x[0] === t) || CD_TYPES[4];
+  const item = o => {
+    const { c, days } = o;
+    const tg = typeOf(c.type);
+    const rep = CD_REPS.find(x => x[0] === c.repeat)[1];
+    const big = days === 0
+      ? '<span class="cd-today">就是今天 🎉</span>'
+      : `<span class="cd-big">${days}</span><span class="cd-unit"> 天后</span>`;
+    return `<div class="card cd-item">
+      <div class="cd-num">${big}</div>
+      <div class="cd-info">
+        <div class="li-main">${esc(c.title)}</div>
+        <div class="li-sub"><span class="tag ${tg[2]}">${tg[1]}</span><span class="tag">${rep}</span><span class="tag">目标 ${nextDateStr(c)}</span></div>
+        ${c.note ? `<div class="cd-note">${esc(c.note)}</div>` : ''}
+        <div class="row mt" style="gap:6px">
+          <button class="btn sm ghost" onclick="editCD('${c.id}')">改</button>
+          <button class="btn sm warn" onclick="delCD('${c.id}')">删</button>
+        </div>
+      </div>
+    </div>`;
+  };
+  const nearest = items.length ? items[0] : null;
+  return `
+  <div class="page-title">⏳ 倒计时</div>
+  <div class="page-sub">${nearest ? '最近：' + esc(nearest.c.title) + ' · 还有 ' + nearest.days + ' 天' : '记录每一个值得期待的日子'}</div>
+
+  <div class="card">
+    <div class="row"><input class="grow" id="cdTitle" placeholder="${edit ? '编辑名称…' : '事件名称，如 妈妈生日'}" value="${edit ? esc(edit.title) : ''}"></div>
+    <div class="row mt">
+      <select id="cdType">${CD_TYPES.map(t => `<option value="${t[0]}" ${edit && edit.type === t[0] ? 'selected' : ''}>${t[1]}</option>`).join('')}</select>
+      <input type="date" id="cdDate" value="${edit ? edit.date : today()}">
+    </div>
+    <div class="row mt">
+      <select id="cdRepeat">${CD_REPS.map(t => `<option value="${t[0]}" ${edit && edit.repeat === t[0] ? 'selected' : ''}>${t[1]}</option>`).join('')}</select>
+      <input class="grow" id="cdNote" placeholder="备注(可选)" value="${edit ? esc(edit.note || '') : ''}">
+    </div>
+    <div class="row mt">
+      <button class="btn ${edit ? 'pink' : ''}" onclick="saveCD()">${edit ? '保存修改 ✔' : '添加倒计时 ➕'}</button>
+      ${edit ? '<button class="btn sm ghost" onclick="S.cdEdit=null;render()">取消</button>' : ''}
+    </div>
+  </div>
+
+  ${items.length ? items.map(item).join('') : '<div class="empty">还没有倒计时，添加第一个值得期待的日子吧～</div>'}
+  `;
+}
+function saveCD() {
+  const title = $('#cdTitle').value.trim(); if (!title) return;
+  const obj = { title, type: $('#cdType').value, date: $('#cdDate').value, repeat: $('#cdRepeat').value, note: $('#cdNote').value.trim() };
+  const all = store.g('countdown', []);
+  if (S.cdEdit) { const i = all.findIndex(x => x.id === S.cdEdit); if (i >= 0) all[i] = { ...all[i], ...obj }; S.cdEdit = null; }
+  else all.push({ id: uid(), ...obj });
+  store.s('countdown', all); render();
+}
+function editCD(id) { S.cdEdit = id; render(); }
+function delCD(id) { if (!confirm('删除这个倒计时？')) return; store.s('countdown', store.g('countdown', []).filter(x => x.id !== id)); render(); }

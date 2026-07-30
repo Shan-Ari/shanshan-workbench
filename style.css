@@ -159,6 +159,14 @@ details.rev-item summary{cursor:pointer;font-weight:600;font-size:14px;list-styl
 details.rev-item summary::-webkit-details-marker{display:none;}
 .rev-view{font-size:13px;line-height:1.8;margin-top:8px;}
 .rev-view b{color:#4a7cc0;display:block;margin-top:6px;}
+/* 倒计时 */
+.cd-item{display:flex;align-items:center;gap:14px;}
+.cd-num{min-width:100px;text-align:center;}
+.cd-big{font-size:38px;font-weight:800;color:var(--blue);line-height:1;}
+.cd-unit{font-size:12px;color:var(--muted);}
+.cd-today{font-size:18px;color:var(--pink);font-weight:700;}
+.cd-info{flex:1;min-width:0;}
+.cd-note{margin-top:4px;font-size:12px;color:var(--muted);}
 /* 手机适配 */
 @media (max-width:480px){
   :root{--sw:60px;}
@@ -166,4 +174,6 @@ details.rev-item summary::-webkit-details-marker{display:none;}
   .stat .num{font-size:19px;}
   .stat-grid{gap:7px;}
   input,select{padding:9px 8px;}
+  .cd-num{min-width:82px;}
+  .cd-big{font-size:32px;}
 }
