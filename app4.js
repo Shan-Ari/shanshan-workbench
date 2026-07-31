@@ -32,22 +32,22 @@ function render_ledger() {
   <div class="card">
     <div class="row"><input type="month" value="${m}" onchange="S.ledMonth=this.value;render()"></div>
     <div class="stat-grid g2" style="margin-top:10px">
-      <div class="stat"><div class="num" style="color:#3f9d6b">¥${inc.toFixed(0)}</div><div class="lb">本月收入</div></div>
+      <div class="stat"><div class="num" style="color:var(--green-d)">¥${inc.toFixed(0)}</div><div class="lb">本月收入</div></div>
       <div class="stat"><div class="num pk">¥${exp.toFixed(0)}</div><div class="lb">本月支出</div></div>
       <div class="stat"><div class="num">¥${(inc - exp).toFixed(0)}</div><div class="lb">本月净收支</div></div>
-      <div class="stat"><div class="num" style="color:#5b8def">¥${totalBal.toFixed(0)}</div><div class="lb">账户总余额</div></div>
+      <div class="stat"><div class="num" style="color:var(--blue)">¥${totalBal.toFixed(0)}</div><div class="lb">账户总余额</div></div>
     </div>
   </div>
   <div class="card"><h3>💰 账户余额</h3>
     ${(() => { const bal = acctBalances(); const base = store.g('acctBase', {}); const total = ACCTS.reduce((a, n) => a + (bal[n] || 0), 0);
-      const row = (n, v) => `<div class="row" style="justify-content:space-between"><span class="li-sub">${n}</span><b style="color:#3f9d6b">¥${v.toFixed(0)}</b></div>`;
+      const row = (n, v) => `<div class="row" style="justify-content:space-between"><span class="li-sub">${n}</span><b style="color:var(--green-d)">¥${v.toFixed(0)}</b></div>`;
       const set = S.acctEdit ? `<div class="row mt" style="flex-wrap:wrap;gap:6px;align-items:center">
         ${ACCTS.map((a, i) => `<label class="li-sub">${a}初始<input type="number" id="ab${i}" value="${base[a] || 0}" style="width:74px"></label>`).join('')}
         <button class="btn sm" onclick="saveAcctBase()">保存</button>
         <button class="btn sm ghost" onclick="S.acctEdit=false;render()">取消</button>
       </div>` : `<div class="row mt"><button class="btn sm ghost" onclick="S.acctEdit=true;render()">⚙ 设置初始余额</button></div>`;
       return ACCTS.map(a => row(a, bal[a])).join('') +
-        `<div class="row" style="justify-content:space-between;margin-top:4px;border-top:1px dashed #e3e9f2;padding-top:6px"><b>合计</b><b style="color:#5b8def">¥${total.toFixed(0)}</b></div>` + set;
+        `<div class="row" style="justify-content:space-between;margin-top:4px;border-top:1px dashed var(--line);padding-top:6px"><b>合计</b><b style="color:var(--blue)">¥${total.toFixed(0)}</b></div>` + set;
     })()}
   </div>
   <div class="card"><h3>➕ 记一笔</h3>
@@ -109,9 +109,9 @@ function repaySection() {
   const soonest = unpaid[0] || null;
   const stat = `
   <div class="stat-grid">
-    <div class="stat"><div class="num" style="color:#5b8def">¥${totalAll.toFixed(0)}</div><div class="lb">总还款金额</div></div>
-    <div class="stat"><div class="num" style="color:#e06ba6">¥${monthlyTotal.toFixed(0)}</div><div class="lb">月总还款金额</div></div>
-    <div class="stat"><div class="num" style="color:#3f9d6b">¥${mPaid.toFixed(0)}</div><div class="lb">本月已还</div></div>
+    <div class="stat"><div class="num" style="color:var(--blue)">¥${totalAll.toFixed(0)}</div><div class="lb">总还款金额</div></div>
+    <div class="stat"><div class="num" style="color:var(--green-d)">¥${monthlyTotal.toFixed(0)}</div><div class="lb">月总还款金额</div></div>
+    <div class="stat"><div class="num" style="color:var(--green-d)">¥${mPaid.toFixed(0)}</div><div class="lb">本月已还</div></div>
     <div class="stat"><div class="num">¥${remainAll.toFixed(0)}</div><div class="lb">剩余未还</div></div>
   </div>`;
   const remind = soonest ? (soonest.r.days === 0
@@ -611,7 +611,7 @@ function render_habit() {
     <div class="stat"><div class="num">${doneToday}/${activeCnt}</div><div class="lb">今日习惯达成</div></div>
     <div class="stat"><div class="num pk">${checkedToday}</div><div class="lb">今日打卡次数</div></div>
     <div class="stat"><div class="num">${habits.length}</div><div class="lb">习惯总数</div></div>
-    <div class="stat"><div class="num" style="color:#5b8def">${activeCnt}</div><div class="lb">今日需打卡</div></div>
+    <div class="stat"><div class="num" style="color:var(--blue)">${activeCnt}</div><div class="lb">今日需打卡</div></div>
   </div></div>
   ${render_heatmap()}
   <div class="card"><h3>➕ ${edit ? '修改习惯' : '添加习惯'}</h3>
