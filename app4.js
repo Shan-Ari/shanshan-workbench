@@ -22,6 +22,8 @@ function render_ledger() {
   const list = all.filter(x => x.date.slice(0, 7) === m).sort((a, b) => b.date.localeCompare(a.date));
   const inc = list.filter(x => x.type === '收入').reduce((a, b) => a + b.amt, 0);
   const exp = list.filter(x => x.type === '支出').reduce((a, b) => a + b.amt, 0);
+  const _bal = acctBalances();
+  const totalBal = ACCTS.reduce((a, n) => a + (_bal[n] || 0), 0);
   const byCat = {};
   list.filter(x => x.type === '支出').forEach(x => byCat[x.cat] = (byCat[x.cat] || 0) + x.amt);
   return `
@@ -29,10 +31,11 @@ function render_ledger() {
   <div class="page-sub">每一笔都清清楚楚</div>
   <div class="card">
     <div class="row"><input type="month" value="${m}" onchange="S.ledMonth=this.value;render()"></div>
-    <div class="stat-grid" style="margin-top:10px">
+    <div class="stat-grid g2" style="margin-top:10px">
       <div class="stat"><div class="num" style="color:#3f9d6b">¥${inc.toFixed(0)}</div><div class="lb">本月收入</div></div>
       <div class="stat"><div class="num pk">¥${exp.toFixed(0)}</div><div class="lb">本月支出</div></div>
-      <div class="stat"><div class="num">¥${(inc - exp).toFixed(0)}</div><div class="lb">本月结余</div></div>
+      <div class="stat"><div class="num">¥${(inc - exp).toFixed(0)}</div><div class="lb">本月净收支</div></div>
+      <div class="stat"><div class="num" style="color:#5b8def">¥${totalBal.toFixed(0)}</div><div class="lb">账户总余额</div></div>
     </div>
   </div>
   <div class="card"><h3>💰 账户余额</h3>
