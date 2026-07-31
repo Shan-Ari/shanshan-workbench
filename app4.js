@@ -42,7 +42,129 @@ function render_ledger() {
       <span class="tag ${x.type === '收入' ? 'g' : 'p'}">${x.type}</span><span class="tag b">${x.cat}</span><b>¥${x.amt}</b>
       <div class="li-sub">${x.date}${x.note ? ' · ' + esc(x.note) : ''}</div></div>
       <button class="btn sm warn" onclick="delLedger('${x.id}')">删</button></div>`).join('') || '<div class="empty">本月还没有账目</div>'}
+  </div>
+  ${render_repay()}
+`;}
+/* ============ 还款管理（与收支分开，独立板块） ============ */
+function repayNext(plan) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  let y = now.getFullYear(), mo = now.getMonth();
+  let t = new Date(y, mo, Math.min(plan.payDay || 1, 28));
+  if (t < now) { mo++; if (mo > 11) { mo = 0; y++; } t = new Date(y, mo, Math.min(plan.payDay || 1, 28)); }
+  const days = Math.round((t - now) / 864e5);
+  return { date: t, days };
+}
+function render_repay() {
+  const plans = store.g('repayPlans', []);
+  const recs = store.g('repayRecords', []);
+  const m = S.ledMonth;
+  const totalAll = plans.reduce((a, p) => a + (parseFloat(p.total) || 0), 0);
+  const paidAll = plans.reduce((a, p) => a + (parseFloat(p.paid) || 0), 0);
+  const remainAll = Math.max(0, totalAll - paidAll);
+  const monthlyTotal = plans.reduce((a, p) => a + (parseFloat(p.monthly) || 0), 0);
+  const mPaid = recs.filter(r => r.date.slice(0, 7) === m).reduce((a, r) => a + r.amt, 0);
+  const edit = S.repayEdit ? plans.find(x => x.id === S.repayEdit) : null;
+  const mRecs = recs.filter(r => r.date.slice(0, 7) === m).sort((a, b) => b.date.localeCompare(a.date));
+  const planName = id => (plans.find(p => p.id === id) || {}).name || '已删除';
+  const soonest = plans.length ? plans.map(p => ({ p, r: repayNext(p) })).sort((a, b) => a.r.days - b.r.days)[0] : null;
+  const stat = `
+  <div class="stat-grid">
+    <div class="stat"><div class="num" style="color:#5b8def">¥${totalAll.toFixed(0)}</div><div class="lb">总还款金额</div></div>
+    <div class="stat"><div class="num" style="color:#e06ba6">¥${monthlyTotal.toFixed(0)}</div><div class="lb">月总还款金额</div></div>
+    <div class="stat"><div class="num" style="color:#3f9d6b">¥${mPaid.toFixed(0)}</div><div class="lb">本月已还</div></div>
+    <div class="stat"><div class="num">¥${remainAll.toFixed(0)}</div><div class="lb">剩余未还</div></div>
   </div>`;
+  const remind = soonest ? (soonest.r.days === 0
+    ? `<div class="repay-alert">🔔 今天也要还款啦：${esc(soonest.p.name)} · 本月应还 ¥${(+soonest.p.monthly).toFixed(0)}</div>`
+    : `<div class="repay-alert">🔔 即将还款：${esc(soonest.p.name)} · 下次 ${soonest.r.date.getFullYear()}-${pad(soonest.r.date.getMonth() + 1)}-${pad(soonest.r.date.getDate())} · 还有 ${soonest.r.days} 天</div>`)
+    : '<div class="repay-alert ok">暂无还款计划，添加后这里会在每月还款日前提醒你 🗓️</div>';
+  const planCard = p => {
+    const total = parseFloat(p.total) || 0, paid = parseFloat(p.paid) || 0, monthly = parseFloat(p.monthly) || 0;
+    const remain = Math.max(0, total - paid);
+    const pct = total ? Math.round(paid / total * 100) : 0;
+    const r = repayNext(p);
+    const due = r.days === 0 ? '今天应还 🔔' : (r.days <= 3 ? `还有 ${r.days} 天 ⏰` : `还有 ${r.days} 天`);
+    return `<div class="card repay-card">
+      <div class="row" style="justify-content:space-between">
+        <div class="li-main" style="font-weight:700">${esc(p.name)}</div>
+        <div class="row" style="gap:6px">
+          <button class="btn sm ghost" onclick="editRepayPlan('${p.id}')">改</button>
+          <button class="btn sm warn" onclick="delRepayPlan('${p.id}')">删</button>
+        </div>
+      </div>
+      ${p.note ? `<div class="li-sub">${esc(p.note)}</div>` : ''}
+      <div class="row" style="justify-content:space-between;margin-top:6px">
+        <span class="li-sub">总还款 ¥${total.toFixed(0)}</span>
+        <span class="li-sub">月还 ¥${monthly.toFixed(0)}</span>
+      </div>
+      <div style="margin:6px 0"><div class="row" style="justify-content:space-between"><span class="li-sub">已还 ¥${paid.toFixed(0)} / 剩余 ¥${remain.toFixed(0)}</span><span class="li-sub">${pct}%</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
+      <div class="row" style="justify-content:space-between">
+        <span class="tag ${r.days <= 3 ? 'p' : 'b'}">${due}</span>
+        <button class="btn sm p" onclick="S.repayPlan='${p.id}';render()">记还款</button>
+      </div>
+    </div>`;
+  };
+  return `
+  <div class="repay-section">
+    <div class="page-sub" style="margin-top:6px">💳 还款管理（与收支分开）</div>
+    <div class="card">${stat}${remind}</div>
+    <div class="card"><h3>➕ 添加还款计划</h3>
+      <div class="row">
+        <input class="grow" id="rpName" placeholder="名称，如 房贷 / 车贷 / 信用卡" value="${edit ? esc(edit.name) : ''}">
+        <input type="number" id="rpTotal" placeholder="总还款金额" value="${edit ? edit.total : ''}" style="width:120px">
+      </div>
+      <div class="row mt">
+        <input type="number" id="rpMonthly" placeholder="月还款金额" value="${edit ? edit.monthly : ''}" style="width:120px">
+        <label class="row" style="gap:4px;font-size:13px">每月<input type="number" id="rpPayDay" min="1" max="28" value="${edit ? (edit.payDay || 1) : 1}" style="width:54px">日</label>
+      </div>
+      <div class="row mt">
+        <input class="grow" id="rpNote" placeholder="备注(选填)" value="${edit ? esc(edit.note || '') : ''}">
+        <button class="btn ${edit ? 'pink' : ''}" onclick="saveRepayPlan()">${edit ? '保存修改 ✔' : '添加计划 ➕'}</button>
+        ${edit ? '<button class="btn sm ghost" onclick="S.repayEdit=null;render()">取消</button>' : ''}
+      </div>
+    </div>
+    ${S.repayPlan ? `<div class="card"><h3>💸 记录一笔还款</h3>
+      <div class="row">
+        <select id="rrPlan">${plans.map(p => `<option value="${p.id}" ${p.id === S.repayPlan ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>
+        <input type="number" id="rrAmt" placeholder="还款金额" style="width:110px">
+        <input type="date" id="rrDate" value="${today()}">
+      </div>
+      <div class="row mt"><input class="grow" id="rrNote" placeholder="备注(选填)"><button class="btn" onclick="addRepayRec()">记还款 ✔</button><button class="btn sm ghost" onclick="S.repayPlan=null;render()">取消</button></div>
+    </div>` : ''}
+    ${plans.length ? plans.map(planCard).join('') : '<div class="empty">还没有还款计划，先添加一个吧～</div>'}
+    <div class="card"><h3>本月还款明细（${mRecs.length} 笔）</h3>
+      ${mRecs.map(r => `<div class="list-item"><div class="li-main">
+        <span class="tag p">还款</span><b>¥${r.amt.toFixed(0)}</b>
+        <div class="li-sub">${planName(r.planId)}${r.note ? ' · ' + esc(r.note) : ''} · ${r.date}</div></div>
+        <button class="btn sm warn" onclick="delRepayRec('${r.id}')">删</button></div>`).join('') || '<div class="empty">本月还没有还款记录</div>'}
+    </div>
+  </div>`;
+}
+function saveRepayPlan() {
+  const name = $('#rpName').value.trim(); if (!name) return;
+  const obj = { name, total: +$('#rpTotal').value || 0, monthly: +$('#rpMonthly').value || 0, payDay: Math.min(28, Math.max(1, +$('#rpPayDay').value || 1)), note: $('#rpNote').value.trim() };
+  const all = store.g('repayPlans', []);
+  if (S.repayEdit) { const i = all.findIndex(x => x.id === S.repayEdit); if (i >= 0) { const wasPaid = all[i].paid || 0; all[i] = { ...all[i], ...obj, paid: wasPaid }; } S.repayEdit = null; }
+  else all.push({ id: uid(), paid: 0, ...obj });
+  store.s('repayPlans', all); render();
+}
+function editRepayPlan(id) { S.repayEdit = id; S.repayPlan = null; render(); }
+function delRepayPlan(id) { if (!confirm('删除这个还款计划？已记录的还款流水会保留。')) return; store.s('repayPlans', store.g('repayPlans', []).filter(x => x.id !== id)); render(); }
+function addRepayRec() {
+  const planId = $('#rrPlan').value; const amt = +$('#rrAmt').value; if (!amt || amt <= 0) return;
+  const recs = store.g('repayRecords', []);
+  recs.push({ id: uid(), planId, date: $('#rrDate').value || today(), amt, note: $('#rrNote').value.trim() });
+  const plans = store.g('repayPlans', []); const i = plans.findIndex(p => p.id === planId);
+  if (i >= 0) plans[i].paid = (parseFloat(plans[i].paid) || 0) + amt;
+  store.s('repayRecords', recs); store.s('repayPlans', plans); S.repayPlan = null; render();
+}
+function delRepayRec(id) {
+  const recs = store.g('repayRecords', []);
+  const r = recs.find(x => x.id === id); if (!r) return;
+  if (!confirm('删除这笔还款记录？会同步扣减已还金额。')) return;
+  const plans = store.g('repayPlans', []); const i = plans.findIndex(p => p.id === r.planId);
+  if (i >= 0) plans[i].paid = Math.max(0, (parseFloat(plans[i].paid) || 0) - r.amt);
+  store.s('repayRecords', recs.filter(x => x.id !== id)); store.s('repayPlans', plans); render();
 }
 function render_ledger_cats(type) {
   const cats = type === '收入' ? INC_CATS : EXP_CATS;

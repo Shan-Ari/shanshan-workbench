@@ -162,6 +162,11 @@ input[type=date],input[type=month],input[type=time]{width:auto;}
 .fest-kind{display:inline-block;font-size:9px;font-weight:600;color:#fff;background:var(--pink);border-radius:6px;padding:1px 5px;margin-left:5px;vertical-align:middle;}
 .fest-kind.term{background:var(--blue);}
 .fest-kind.lun{background:#c9a0dc;}
+/* 还款管理 */
+.repay-section{margin-top:4px;}
+.repay-alert{margin-top:10px;padding:9px 12px;border-radius:12px;background:#fff1f7;color:#d34f93;font-size:13px;font-weight:600;line-height:1.5;}
+.repay-alert.ok{background:#eef6ff;color:#3a78c2;}
+.repay-card .li-sub{font-size:12px;color:var(--muted);}
 /* 诗词 */
 .poem-body{text-align:center;line-height:2;font-size:16px;margin:8px 0;}
 .poem-sec{background:#f8fafd;border-radius:10px;padding:10px 12px;margin-top:8px;font-size:13px;line-height:1.8;}
