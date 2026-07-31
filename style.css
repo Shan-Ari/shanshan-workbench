@@ -145,8 +145,23 @@ input[type=date],input[type=month],input[type=time]{width:auto;}
 }
 .cal-day.today{background:var(--blue-l);font-weight:700;}
 .cal-day.sel{background:linear-gradient(135deg,var(--blue),var(--pink));color:#fff;}
-.cal-day .dot{width:5px;height:5px;border-radius:50%;background:var(--pink);position:absolute;bottom:5px;}
+.cal-day .cal-num{font-size:13px;line-height:1.1;}
+.cal-day.today .cal-num{font-weight:700;}
+.cal-lunar{font-size:9px;color:var(--muted);line-height:1;margin-top:1px;}
+.cal-fest{font-size:9px;color:var(--pink);line-height:1;margin-top:1px;font-weight:600;}
+.cal-day.sel .cal-lunar,.cal-day.sel .cal-fest{color:#fff;}
+.cal-day.today .cal-lunar{color:var(--blue-d);}
+.cal-day .dot{width:5px;height:5px;border-radius:50%;background:var(--pink);position:absolute;top:4px;right:4px;}
 .cal-day.sel .dot{background:#fff;}
+.cal-legend{font-size:10px;color:var(--muted);margin-top:8px;text-align:center;}
+.fest-card{display:flex;align-items:center;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line);}
+.fest-card:last-child{border-bottom:none;}
+.fest-name{font-weight:600;font-size:14px;}
+.fest-date{font-size:11px;color:var(--muted);margin-top:1px;}
+.fest-days{color:var(--pink);font-weight:700;font-size:13px;white-space:nowrap;margin-left:8px;}
+.fest-kind{display:inline-block;font-size:9px;font-weight:600;color:#fff;background:var(--pink);border-radius:6px;padding:1px 5px;margin-left:5px;vertical-align:middle;}
+.fest-kind.term{background:var(--blue);}
+.fest-kind.lun{background:#c9a0dc;}
 /* 诗词 */
 .poem-body{text-align:center;line-height:2;font-size:16px;margin:8px 0;}
 .poem-sec{background:#f8fafd;border-radius:10px;padding:10px 12px;margin-top:8px;font-size:13px;line-height:1.8;}

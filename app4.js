@@ -138,6 +138,62 @@ function addFinRev() { const t = $('#fnRev').value.trim(); if (!t) return; const
 function delFinRev(id) { const f = finData(); f.rev = f.rev.filter(x => x.id !== id); store.s('fin', f); render(); }
 
 /* ============ 日程日历 ============ */
+/* ============ 节日（公历固定 / 农历 / 移动公历 / 24节气） ============ */
+const FESTIVALS = [
+  { m: 1, d: 1, name: '元旦', kind: '公历' },
+  { m: 2, d: 14, name: '情人节', kind: '公历' },
+  { m: 3, d: 8, name: '妇女节', kind: '公历' },
+  { m: 5, d: 1, name: '劳动节', kind: '公历' },
+  { m: 6, d: 1, name: '儿童节', kind: '公历' },
+  { m: 9, d: 10, name: '教师节', kind: '公历' },
+  { m: 10, d: 1, name: '国庆节', kind: '公历' },
+  { m: 12, d: 25, name: '圣诞节', kind: '公历' },
+  { m: 5, nth: 2, weekday: 0, name: '母亲节', kind: '移动' },
+  { m: 6, nth: 3, weekday: 0, name: '父亲节', kind: '移动' },
+  { m: 1, d: 1, name: '春节', kind: '农历', lunar: true },
+  { m: 1, d: 15, name: '元宵节', kind: '农历', lunar: true },
+  { m: 2, d: 2, name: '龙抬头', kind: '农历', lunar: true },
+  { m: 5, d: 5, name: '端午节', kind: '农历', lunar: true },
+  { m: 7, d: 7, name: '七夕节', kind: '农历', lunar: true },
+  { m: 7, d: 15, name: '中元节', kind: '农历', lunar: true },
+  { m: 8, d: 15, name: '中秋节', kind: '农历', lunar: true },
+  { m: 9, d: 9, name: '重阳节', kind: '农历', lunar: true },
+  { m: 12, d: 8, name: '腊八节', kind: '农历', lunar: true },
+  { m: 12, d: 23, name: '小年', kind: '农历', lunar: true }
+];
+/* 第 nth 个 weekday(0=日) 的公历日期 */
+function nthWeekdayDate(y, m, nth, wd) {
+  const first = new Date(y, m - 1, 1).getDay();
+  const day = 1 + ((wd - first + 7) % 7) + (nth - 1) * 7;
+  return new Date(y, m - 1, day);
+}
+function nextFestivalDate(f) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  if (f.kind === '公历') {
+    let t = new Date(now.getFullYear(), f.m - 1, f.d);
+    if (t < now) t = new Date(now.getFullYear() + 1, f.m - 1, f.d);
+    return t;
+  }
+  if (f.kind === '移动') {
+    let t = nthWeekdayDate(now.getFullYear(), f.m, f.nth, f.weekday);
+    if (t < now) t = nthWeekdayDate(now.getFullYear() + 1, f.m, f.nth, f.weekday);
+    return t;
+  }
+  if (f.kind === '节气') {
+    return new Date(f.year, f.m - 1, f.d);
+  }
+  // 农历
+  const y0 = now.getFullYear();
+  for (const y of [y0, y0 + 1]) {
+    const md = SL.monthDays(y, f.m); if (md < 1) continue;
+    const r = SL.lunar2solar(y, f.m, Math.min(f.d, md), false);
+    if (!r) continue;
+    const t = new Date(r.y, r.m - 1, r.d);
+    if (t >= now) return t;
+  }
+  return null;
+}
+
 function render_calendar() {
   const evs = store.g('cal', []);
   const y = S.calY, m = S.calM;
@@ -146,14 +202,41 @@ function render_calendar() {
   const evDates = new Set(evs.map(e => e.date));
   let cells = '<div class="cal-wd">日</div><div class="cal-wd">一</div><div class="cal-wd">二</div><div class="cal-wd">三</div><div class="cal-wd">四</div><div class="cal-wd">五</div><div class="cal-wd">六</div>';
   for (let i = 0; i < first; i++) cells += '<div></div>';
+  const termMap = {};
+  if (typeof SL !== 'undefined' && SL.solarTerm) { for (const t of SL.solarTerm(y)) termMap[t.month + '-' + t.day] = t.name; }
   for (let d = 1; d <= days; d++) {
     const ds = y + '-' + pad(m + 1) + '-' + pad(d);
-    cells += `<div class="cal-day ${ds === today() ? 'today' : ''} ${ds === S.calSel ? 'sel' : ''}" onclick="S.calSel='${ds}';render()">${d}${evDates.has(ds) ? '<span class="dot"></span>' : ''}</div>`;
+    const L = (typeof SL !== 'undefined') ? SL.solar2lunar(y, m + 1, d) : null;
+    const lunarText = L ? (L.IDayCn === '初一' ? L.IMonthCn : L.IDayCn) : '';
+    let fest = termMap[(m + 1) + '-' + d] || '';
+    if (!fest && L) {
+      for (const f of FESTIVALS) {
+        if (!f.lunar && f.m === m + 1 && f.d === d) { fest = f.name; break; }
+        if (f.lunar && f.m === L.lMonth && f.d === L.lDay) { fest = f.name; break; }
+      }
+    }
+    const sub = fest ? `<span class="cal-fest">${fest}</span>` : (lunarText ? `<span class="cal-lunar">${lunarText}</span>` : '');
+    cells += `<div class="cal-day ${ds === today() ? 'today' : ''} ${ds === S.calSel ? 'sel' : ''}" onclick="S.calSel='${ds}';render()"><span class="cal-num">${d}</span>${sub}${evDates.has(ds) ? '<span class="dot"></span>' : ''}</div>`;
   }
   const dayEvs = evs.filter(e => e.date === S.calSel).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  let festAll = FESTIVALS.slice();
+  if (typeof SL !== 'undefined' && SL.solarTerm) {
+    for (const yy of [now.getFullYear(), now.getFullYear() + 1]) {
+      for (const t of SL.solarTerm(yy)) festAll.push({ name: t.name, year: t.year, m: t.month, d: t.day, kind: '节气' });
+    }
+  }
+  const festList = festAll.map(f => { const date = nextFestivalDate(f); return { ...f, date, days: date ? Math.round((date - now) / 864e5) : null }; })
+    .filter(f => f.days != null && f.days >= 0)
+    .sort((a, b) => a.days - b.days);
+  const festCards = festList.slice(0, 8).map(f => `
+    <div class="fest-card">
+      <div><div class="fest-name">${f.name}<span class="fest-kind ${f.kind === '节气' ? 'term' : (f.kind === '农历' ? 'lun' : '')}">${f.kind}</span></div><div class="fest-date">${f.date.getFullYear()}-${pad(f.date.getMonth() + 1)}-${pad(f.date.getDate())}</div></div>
+      <div class="fest-days">${f.days === 0 ? '今天 🎉' : (f.days < 0 ? '已过' : f.days + ' 天后')}</div>
+    </div>`).join('');
   return `
   <div class="page-title">📅 日程日历</div>
-  <div class="page-sub">安排在手，心中不慌</div>
+  <div class="page-sub">安排在手，心中不慌 · 农历与节日已标注</div>
   <div class="card">
     <div class="row" style="justify-content:space-between">
       <button class="btn sm ghost" onclick="calNav(-1)">◀ 上月</button>
@@ -161,7 +244,9 @@ function render_calendar() {
       <button class="btn sm ghost" onclick="calNav(1)">下月 ▶</button>
     </div>
     <div class="cal-grid" style="margin-top:10px">${cells}</div>
+    <div class="cal-legend"><span class="cal-fest">粉字</span> 节日 / 节气 · <span class="cal-lunar">小字</span> 农历日期</div>
   </div>
+  <div class="card"><h3>🏮 传统节日提醒</h3>${festCards || '<div class="empty">暂无</div>'}</div>
   <div class="card"><h3>📌 ${S.calSel} 的日程</h3>
     <div class="row"><input type="time" id="cvTime"><input class="grow" id="cvText" placeholder="日程内容…"><button class="btn" onclick="addCal()">添加 ➕</button></div>
     ${dayEvs.map(e => `<div class="list-item"><div class="li-main">${e.time ? '<span class="tag b">' + e.time + '</span>' : ''}${esc(e.text)}</div><button class="btn sm warn" onclick="delCal('${e.id}')">删</button></div>`).join('') || '<div class="empty">当天暂无日程</div>'}
