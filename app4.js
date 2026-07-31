@@ -1,6 +1,21 @@
 /* ============ 记账 ============ */
 const EXP_CATS = ['餐饮', '购物', '通勤', '娱乐', '居住', '医疗', '人情', '其他'];
 const INC_CATS = ['工资', '理财收益', '副业', '其他'];
+const ACCTS = ['支付宝', '微信', '银行卡'];
+function acctBalances() {
+  const base = store.g('acctBase', { 支付宝: 0, 微信: 0, 银行卡: 0 });
+  const bal = { 支付宝: base['支付宝'] || 0, 微信: base['微信'] || 0, 银行卡: base['银行卡'] || 0 };
+  store.g('ledger', []).forEach(x => {
+    const ac = x.acct || '银行卡';
+    if (!bal[ac]) return;
+    if (x.type === '收入') bal[ac] += x.amt; else if (x.type === '支出') bal[ac] -= x.amt;
+  });
+  return bal;
+}
+function saveAcctBase() {
+  const base = { 支付宝: (+$('#ab0').value) || 0, 微信: (+$('#ab1').value) || 0, 银行卡: (+$('#ab2').value) || 0 };
+  store.s('acctBase', base); S.acctEdit = false; render();
+}
 function render_ledger() {
   const all = store.g('ledger', []);
   const m = S.ledMonth;
@@ -20,6 +35,20 @@ function render_ledger() {
       <div class="stat"><div class="num">¥${(inc - exp).toFixed(0)}</div><div class="lb">本月结余</div></div>
     </div>
   </div>
+  <div class="card"><h3>💰 账户余额</h3>
+    ${(() => { const bal = acctBalances(); const base = store.g('acctBase', { 支付宝: 0, 微信: 0, 银行卡: 0 }); const total = bal['支付宝'] + bal['微信'] + bal['银行卡'];
+      const row = (n, v) => `<div class="row" style="justify-content:space-between"><span class="li-sub">${n}</span><b style="color:#3f9d6b">¥${v.toFixed(0)}</b></div>`;
+      const set = S.acctEdit ? `<div class="row mt" style="flex-wrap:wrap;gap:6px;align-items:center">
+        <label class="li-sub">支付宝初始<input type="number" id="ab0" value="${base['支付宝']}" style="width:74px"></label>
+        <label class="li-sub">微信初始<input type="number" id="ab1" value="${base['微信']}" style="width:74px"></label>
+        <label class="li-sub">银行卡初始<input type="number" id="ab2" value="${base['银行卡']}" style="width:74px"></label>
+        <button class="btn sm" onclick="saveAcctBase()">保存</button>
+        <button class="btn sm ghost" onclick="S.acctEdit=false;render()">取消</button>
+      </div>` : `<div class="row mt"><button class="btn sm ghost" onclick="S.acctEdit=true;render()">⚙ 设置初始余额</button></div>`;
+      return row('支付宝', bal['支付宝']) + row('微信', bal['微信']) + row('银行卡', bal['银行卡']) +
+        `<div class="row" style="justify-content:space-between;margin-top:4px;border-top:1px dashed #e3e9f2;padding-top:6px"><b>合计</b><b style="color:#5b8def">¥${total.toFixed(0)}</b></div>` + set;
+    })()}
+  </div>
   <div class="card"><h3>➕ 记一笔</h3>
     <div class="row">
       <select id="ldType" onchange="render_ledger_cats(this.value)"><option>支出</option><option>收入</option></select>
@@ -28,6 +57,7 @@ function render_ledger() {
     </div>
     <div class="row mt">
       <input type="date" id="ldDate" value="${today()}">
+      <select id="ldAcct">${ACCTS.map(c => `<option>${c}</option>`).join('')}</select>
       <input class="grow" id="ldNote" placeholder="备注(选填)">
       <button class="btn" onclick="addLedger()">记账 ➕</button>
     </div>
@@ -66,7 +96,11 @@ function render_repay() {
   const edit = S.repayEdit ? plans.find(x => x.id === S.repayEdit) : null;
   const mRecs = recs.filter(r => r.date.slice(0, 7) === m).sort((a, b) => b.date.localeCompare(a.date));
   const planName = id => (plans.find(p => p.id === id) || {}).name || '已删除';
-  const soonest = plans.length ? plans.map(p => ({ p, r: repayNext(p) })).sort((a, b) => a.r.days - b.r.days)[0] : null;
+  const planMonthPaid = p => recs.filter(r => r.planId === p.id && r.date.slice(0, 7) === m).reduce((a, r) => a + r.amt, 0);
+  const unpaid = plans.map(p => ({ p, r: repayNext(p), mp: planMonthPaid(p) }))
+    .filter(x => (parseFloat(x.p.monthly) || 0) - x.mp > 0.001)
+    .sort((a, b) => a.r.days - b.r.days);
+  const soonest = unpaid[0] || null;
   const stat = `
   <div class="stat-grid">
     <div class="stat"><div class="num" style="color:#5b8def">¥${totalAll.toFixed(0)}</div><div class="lb">总还款金额</div></div>
@@ -75,15 +109,16 @@ function render_repay() {
     <div class="stat"><div class="num">¥${remainAll.toFixed(0)}</div><div class="lb">剩余未还</div></div>
   </div>`;
   const remind = soonest ? (soonest.r.days === 0
-    ? `<div class="repay-alert">🔔 今天也要还款啦：${esc(soonest.p.name)} · 本月应还 ¥${(+soonest.p.monthly).toFixed(0)}</div>`
-    : `<div class="repay-alert">🔔 即将还款：${esc(soonest.p.name)} · 下次 ${soonest.r.date.getFullYear()}-${pad(soonest.r.date.getMonth() + 1)}-${pad(soonest.r.date.getDate())} · 还有 ${soonest.r.days} 天</div>`)
-    : '<div class="repay-alert ok">暂无还款计划，添加后这里会在每月还款日前提醒你 🗓️</div>';
+    ? `<div class="repay-alert">🔔 今天也要还款啦：${esc(soonest.p.name)} · 本月应还 ¥${(+soonest.p.monthly).toFixed(0)}（已还 ¥${soonest.mp.toFixed(0)}）</div>`
+    : `<div class="repay-alert">🔔 即将还款：${esc(soonest.p.name)} · 下次 ${soonest.r.date.getFullYear()}-${pad(soonest.r.date.getMonth() + 1)}-${pad(soonest.r.date.getDate())} · 还有 ${soonest.r.days} 天（已还 ¥${soonest.mp.toFixed(0)}/${(+soonest.p.monthly).toFixed(0)}）</div>`)
+    : (plans.length ? '<div class="repay-alert ok">✅ 本月还款提醒已全部结清，辛苦啦 🎉</div>' : '<div class="repay-alert ok">暂无还款计划，添加后这里会在每月还款日前提醒你 🗓️</div>');
   const planCard = p => {
     const total = parseFloat(p.total) || 0, paid = parseFloat(p.paid) || 0, monthly = parseFloat(p.monthly) || 0;
     const remain = Math.max(0, total - paid);
     const pct = total ? Math.round(paid / total * 100) : 0;
     const r = repayNext(p);
-    const due = r.days === 0 ? '今天应还 🔔' : (r.days <= 3 ? `还有 ${r.days} 天 ⏰` : `还有 ${r.days} 天`);
+    const mp = planMonthPaid(p);
+    const due = mp > 0.001 ? `本月已还 ¥${mp.toFixed(0)} ✅` : (r.days === 0 ? '今天应还 🔔' : (r.days <= 3 ? `还有 ${r.days} 天 ⏰` : `还有 ${r.days} 天`));
     return `<div class="card repay-card">
       <div class="row" style="justify-content:space-between">
         <div class="li-main" style="font-weight:700">${esc(p.name)}</div>
@@ -173,7 +208,7 @@ function render_ledger_cats(type) {
 function addLedger() {
   const amt = +$('#ldAmt').value; if (!amt || amt <= 0) return;
   const all = store.g('ledger', []);
-  all.push({ id: uid(), date: $('#ldDate').value || today(), type: $('#ldType').value, cat: $('#ldCat').value, amt, note: $('#ldNote').value.trim() });
+  all.push({ id: uid(), date: $('#ldDate').value || today(), type: $('#ldType').value, cat: $('#ldCat').value, amt, note: $('#ldNote').value.trim(), acct: $('#ldAcct').value });
   store.s('ledger', all); render();
 }
 function delLedger(id) { if (!confirm('删除这笔账？')) return; store.s('ledger', store.g('ledger', []).filter(x => x.id !== id)); render(); }
