@@ -151,6 +151,16 @@ input[type=date],input[type=month],input[type=time]{width:auto;}
 .tag.g{background:var(--green-l);color:var(--green-d);}
 .tag.y{background:var(--amber-l);color:var(--amber-d);}
 .tag.r{background:#FDEAE8;color:#D86A5C;}
+/* 每日明细（按日分组） */
+.day-group{margin-bottom:12px;padding:8px 10px;border-radius:14px;background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.5);}
+.day-group:last-child{margin-bottom:0;}
+.day-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.day-date{font-weight:700;color:var(--ink);font-size:13px;}
+.day-sum{display:flex;align-items:center;gap:0;}
+.day-sum .exp{color:var(--blue-d);}
+.day-sum .inc{color:var(--green-d);}
+.list-item.sub{padding:8px 2px;border-bottom:1px dashed var(--line);}
+.list-item.sub:last-child{border-bottom:none;}
 /* 统计 */
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .stat-grid.g2{grid-template-columns:repeat(2,1fr);}

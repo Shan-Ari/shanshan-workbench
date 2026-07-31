@@ -68,11 +68,33 @@ function render_ledger() {
       const pct = exp ? Math.round(v / exp * 100) : 0;
       return `<div style="margin-bottom:8px"><div class="row" style="justify-content:space-between"><span>${c}</span><span class="li-sub">¥${v.toFixed(0)} · ${pct}%</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`;
     }).join('')}</div>` : ''}
-  <div class="card"><h3>本月明细（${list.length} 笔）</h3>
-    ${list.map(x => `<div class="list-item"><div class="li-main">
-      <span class="tag ${x.type === '收入' ? 'g' : 'p'}">${x.type}</span><span class="tag b">${x.cat}</span><b>¥${x.amt}</b>
-      <div class="li-sub">${x.date}${x.note ? ' · ' + esc(x.note) : ''}</div></div>
-      <button class="btn sm warn" onclick="delLedger('${x.id}')">删</button></div>`).join('') || '<div class="empty">本月还没有账目</div>'}
+  <div class="card"><h3>📅 每日明细（${list.length} 笔）</h3>
+    ${(() => {
+      const days = {};
+      list.forEach(x => { (days[x.date] = days[x.date] || []).push(x); });
+      const dates = Object.keys(days).sort((a, b) => b.localeCompare(a));
+      if (!dates.length) return '<div class="empty">本月还没有账目</div>';
+      return dates.map(d => {
+        const items = days[d].slice().sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+        const dExp = items.filter(x => x.type === '支出').reduce((s, x) => s + x.amt, 0);
+        const dInc = items.filter(x => x.type === '收入').reduce((s, x) => s + x.amt, 0);
+        const wd = WD_SHORT[new Date(d + 'T00:00:00').getDay()];
+        return `<div class="day-group">
+          <div class="day-head">
+            <span class="day-date">${d.slice(5)} <span class="li-sub">周${wd}</span></span>
+            <span class="day-sum">
+              <span class="li-sub">支出 <b class="exp">¥${dExp.toFixed(0)}</b></span>
+              ${dInc ? `<span class="li-sub" style="margin-left:8px">收入 <b class="inc">¥${dInc.toFixed(0)}</b></span>` : ''}
+              <span class="li-sub" style="margin-left:8px">${items.length} 笔</span>
+            </span>
+          </div>
+          ${items.map(x => `<div class="list-item sub"><div class="li-main">
+            <span class="tag ${x.type === '收入' ? 'g' : 'p'}">${x.type}</span><span class="tag b">${x.cat}</span><b>¥${x.amt}</b>
+            ${x.note ? `<div class="li-sub">${esc(x.note)}</div>` : ''}</div>
+            <button class="btn sm warn" onclick="delLedger('${x.id}')">删</button></div>`).join('')}
+        </div>`;
+      }).join('');
+    })()}
   </div>
 `;}
 /* ============ 还款管理（与收支分开，独立页面） ============ */
