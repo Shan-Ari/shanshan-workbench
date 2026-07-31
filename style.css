@@ -34,29 +34,38 @@ h2,h3,h4{margin:0;}
   box-shadow:0 8px 22px rgba(150,150,220,.35);
 }
 .sp-enter:active{transform:scale(.96);}
-/* ============ 侧边栏 ============ */
-#sidebar{
-  position:fixed;left:0;top:0;bottom:0;width:var(--sw);z-index:50;
+/* ============ 顶部固定快捷栏 ============ */
+#topbar{
+  position:sticky;top:0;z-index:60;
+  display:flex;gap:6px;margin:0 0 14px;
+  padding:8px 10px;border-radius:0 0 var(--r) var(--r);
   background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
-  border-right:1px solid var(--line);
-  display:flex;flex-direction:column;align-items:center;
-  padding:10px 0 20px;overflow-y:auto;scrollbar-width:none;
+  border:1px solid var(--line);border-top:none;
+  box-shadow:0 4px 14px rgba(140,160,200,.12);
 }
-#sidebar::-webkit-scrollbar{display:none;}
-.nav-sec{font-size:9px;color:#b9c5d8;margin:8px 0 3px;letter-spacing:1px;}
-.nav-item{
-  width:54px;padding:7px 0;margin:2px 0;border-radius:12px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);
+.tb-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 0;border-radius:12px;cursor:pointer;color:var(--muted);font-size:11px;
 }
-.nav-item .ic{font-size:18px;line-height:1;}
-.nav-item .lb{font-size:10px;line-height:1.2;text-align:center;}
-.nav-item.active{
+.tb-item .ic{font-size:21px;line-height:1;}
+.tb-item.active{
   background:linear-gradient(135deg,var(--blue-l),var(--pink-l));
   color:var(--ink);font-weight:600;
 }
-.nav-item:active{transform:scale(.94);}
+.tb-item:active{transform:scale(.95);}
+/* ============ 首页模块网格 ============ */
+.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.mod-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:14px 6px;border-radius:var(--r);background:#fff;
+  border:1px solid var(--line);cursor:pointer;transition:.15s;
+}
+.mod-card:active{transform:scale(.96);}
+.mod-card .ic{font-size:26px;line-height:1;}
+.mod-card .nm{font-size:12px;color:var(--ink);}
+.mod-card.last{background:linear-gradient(135deg,var(--blue-l),var(--pink-l));border-color:transparent;}
 /* ============ 主区 ============ */
-#main{margin-left:var(--sw);padding:16px 14px 60px;max-width:780px;}
+#main{margin:0 auto;padding:16px 14px 60px;max-width:780px;}
 .page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
 .page-sub{color:var(--muted);font-size:12px;margin-bottom:14px;}
 .card{
@@ -211,4 +220,5 @@ details.rev-item summary::-webkit-details-marker{display:none;}
   input,select{padding:9px 8px;}
   .cd-num{min-width:82px;}
   .cd-big{font-size:32px;}
+  .mod-grid{grid-template-columns:repeat(2,1fr);}
 }

@@ -51,12 +51,6 @@ const PAGES = [
   { id: 'weekly', ic: '🗓️', nm: '周复盘' },
   { id: 'monthly', ic: '🌙', nm: '月复盘' }
 ];
-const QUICK = [
-  { id: 'plan', ic: '✅', nm: '待办清单' },
-  { id: 'ledger', ic: '🧾', nm: '记账' },
-  { id: 'calendar', ic: '📅', nm: '日程日历' },
-  { id: 'countdown', ic: '⏳', nm: '倒计时' }
-];
 /* 页面临时状态 */
 const S = { engTab: 'speak', planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', cdEdit: null, repayEdit: null, repayPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all' };
 
@@ -76,25 +70,23 @@ const QUOTES = [
   '愿你眼里有光，心中有爱，手上有活 🕯️'
 ];
 
-/* ============ 路由 & 侧边栏 ============ */
+/* ============ 路由 & 顶部固定快捷栏 ============ */
 function go(id) { location.hash = '#' + id; }
 function curPage() { const h = location.hash.replace('#', ''); return PAGES.some(p => p.id === h) ? h : 'home'; }
-function buildSidebar() {
+/* 顶部常驻快捷栏：4 项常用，吸顶固定、随时跳转 */
+const TOP = [
+  { id: 'home', ic: '🏠', nm: '首页' },
+  { id: 'ledger', ic: '🧾', nm: '记账' },
+  { id: 'plan', ic: '✅', nm: '待办' },
+  { id: 'habit', ic: '🌿', nm: '打卡' }
+];
+function topbar() {
   const cur = curPage();
-  let h = '<div class="nav-sec">快捷</div>';
-  h += QUICK.map(q => `<div class="nav-item ${cur === q.id ? 'active' : ''}" onclick="go('${q.id}')"><span class="ic">${q.ic}</span><span class="lb">${q.nm}</span></div>`).join('');
-  h += '<div class="nav-sec">页面</div>';
-  h += PAGES.map(p => `<div class="nav-item ${cur === p.id ? 'active' : ''}" onclick="go('${p.id}')"><span class="ic">${p.ic}</span><span class="lb">${p.nm}</span></div>`).join('');
-  h += '<div class="nav-sec">数据</div>';
-  h += `<div class="nav-item" onclick="backupExport()"><span class="ic">⬇️</span><span class="lb">导出备份</span></div>`;
-  h += `<div class="nav-item" onclick="document.getElementById('backupFile').click()"><span class="ic">⬆️</span><span class="lb">导入备份</span></div>`;
-  h += '<input type="file" id="backupFile" accept="application/json" style="display:none" onchange="backupImport(this)">';
-  $('#sidebar').innerHTML = h;
+  return `<div id="topbar">${TOP.map(t => `<div class="tb-item ${cur === t.id ? 'active' : ''}" onclick="go('${t.id}')"><span class="ic">${t.ic}</span><span>${t.nm}</span></div>`).join('')}</div>`;
 }
 function render() {
-  buildSidebar();
   const fn = window['render_' + curPage()];
-  if (fn) $('#main').innerHTML = fn();
+  $('#main').innerHTML = topbar() + (fn ? fn() : '');
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', render);
@@ -142,9 +134,18 @@ function render_home() {
   const lMin = listens.reduce((a, b) => a + (+b.mins || 0), 0);
   const recentR = reads.slice(-5).reverse();
   const recentL = listens.slice(-5).reverse();
+  const mods = PAGES.filter(p => p.id !== 'home');
+  const grid = mods.map((p, i) => {
+    const last = i >= mods.length - 2;
+    return `<div class="mod-card ${last ? 'last' : ''}" onclick="go('${p.id}')"><span class="ic">${p.ic}</span><span class="nm">${p.nm}</span></div>`;
+  }).join('');
   return `
-  <div class="page-title">🏠 首页 · 数据总览</div>
-  <div class="page-sub">${today()} · 每一天的积累都算数</div>
+  <div class="page-title">🏠 首页 · 全局导航</div>
+  <div class="page-sub">${today()} · 点任意模块即可跳转，随时切换不丢进度</div>
+
+  <div class="card" style="padding:12px">
+    <div class="mod-grid">${grid}</div>
+  </div>
 
   <div class="card"><h3>🔥 连续打卡统计</h3>
     <div class="stat-grid">
@@ -179,6 +180,15 @@ function render_home() {
       <button class="btn pink" onclick="addListen()">听力打卡 ➕</button>
     </div>
     ${recentL.length ? recentL.map(r => `<div class="list-item"><div class="li-main">${r.date} · 练习 <b>${r.mins}</b> 分钟</div></div>`).join('') : '<div class="empty">还没有听力记录～</div>'}
+  </div>
+
+  <div class="card" style="padding:12px;text-align:center">
+    <div class="li-sub" style="margin-bottom:8px">📦 数据安全（换设备/链接可迁移）</div>
+    <div class="row" style="justify-content:center;gap:8px">
+      <button class="btn sm ghost" onclick="backupExport()">⬇️ 导出备份</button>
+      <button class="btn sm ghost" onclick="document.getElementById('backupFile').click()">⬆️ 导入备份</button>
+    </div>
+    <input type="file" id="backupFile" accept="application/json" style="display:none" onchange="backupImport(this)">
   </div>`;
 }
 function addRead() {
