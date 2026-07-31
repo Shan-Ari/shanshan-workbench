@@ -80,13 +80,14 @@ const TOP = [
   { id: 'plan', ic: '✅', nm: '待办' },
   { id: 'habit', ic: '🌿', nm: '打卡' }
 ];
-function topbar() {
+function buildSidebar() {
   const cur = curPage();
-  return `<div id="topbar">${TOP.map(t => `<div class="tb-item ${cur === t.id ? 'active' : ''}" onclick="go('${t.id}')"><span class="ic">${t.ic}</span><span>${t.nm}</span></div>`).join('')}</div>`;
+  $('#sidebar').innerHTML = TOP.map(t => `<div class="tb-item ${cur === t.id ? 'active' : ''}" onclick="go('${t.id}')"><span class="ic">${t.ic}</span><span class="nm">${t.nm}</span></div>`).join('');
 }
 function render() {
+  buildSidebar();
   const fn = window['render_' + curPage()];
-  $('#main').innerHTML = topbar() + (fn ? fn() : '');
+  if (fn) $('#main').innerHTML = fn();
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', render);
