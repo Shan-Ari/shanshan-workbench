@@ -148,41 +148,6 @@ function render_home() {
     <div class="mod-grid">${grid}</div>
   </div>
 
-  <div class="card"><h3>🔥 连续打卡统计</h3>
-    <div class="stat-grid">
-      <div class="stat"><div class="num">${streakOf(ci)}</div><div class="lb">连续打卡(天)</div></div>
-      <div class="stat"><div class="num pk">${ci.length}</div><div class="lb">累计打卡(天)</div></div>
-      <div class="stat"><div class="num">${ci.includes(today()) ? '✔' : '—'}</div><div class="lb">今日已登录打卡</div></div>
-    </div>
-  </div>
-
-  <div class="card"><h3>🌅 晨间阅读统计</h3>
-    <div class="stat-grid">
-      <div class="stat"><div class="num">${rMin}</div><div class="lb">累计阅读(分钟)</div></div>
-      <div class="stat"><div class="num pk">${rCnt}</div><div class="lb">累计阅读(篇)</div></div>
-      <div class="stat"><div class="num">${streakOf(rDates)}</div><div class="lb">连续晨读(天)</div></div>
-    </div>
-    <div class="row mt">
-      <input type="number" id="rdMin" placeholder="时长(分)">
-      <input type="number" id="rdCnt" placeholder="篇数">
-      <button class="btn" onclick="addRead()">晨读打卡 ➕</button>
-    </div>
-    ${recentR.length ? recentR.map(r => `<div class="list-item"><div class="li-main">${r.date} · 阅读 <b>${r.mins}</b> 分钟 · <b>${r.count}</b> 篇</div></div>`).join('') : '<div class="empty">还没有晨读记录，今天开始吧～</div>'}
-  </div>
-
-  <div class="card"><h3>🎧 听力学习统计</h3>
-    <div class="stat-grid">
-      <div class="stat"><div class="num">${lMin}</div><div class="lb">累计时长(分钟)</div></div>
-      <div class="stat"><div class="num pk">${listens.length}</div><div class="lb">学习次数</div></div>
-      <div class="stat"><div class="num">${streakOf(lDates)}</div><div class="lb">连续学习(天)</div></div>
-    </div>
-    <div class="row mt">
-      <input type="number" id="lsMin" placeholder="时长(分)">
-      <button class="btn pink" onclick="addListen()">听力打卡 ➕</button>
-    </div>
-    ${recentL.length ? recentL.map(r => `<div class="list-item"><div class="li-main">${r.date} · 练习 <b>${r.mins}</b> 分钟</div></div>`).join('') : '<div class="empty">还没有听力记录～</div>'}
-  </div>
-
   <div class="card" style="padding:12px;text-align:center">
     <div class="li-sub" style="margin-bottom:8px">📦 数据安全（换设备/链接可迁移）</div>
     <div class="row" style="justify-content:center;gap:8px">
