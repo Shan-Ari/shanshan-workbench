@@ -4,7 +4,7 @@
   --amber:#F9E79F; --amber-l:#FFF9D6; --amber-d:#C9B556;
   --green:#B8E0D2; --green-l:#E4F5EE; --green-d:#7ABAA6;
   --ink:#6B5A5E; --muted:#A59296; --line:#F3E8E8; --r:16px;
-  --sw:64px; --ic-bg:rgba(255,249,249,.50);
+  --sw:64px; --ic-bg:#FFFCFB;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -72,8 +72,9 @@ h2,h3,h4{margin:0;}
 }
 .tb-item .ic{
   width:40px;height:40px;display:flex;align-items:center;justify-content:center;
-  border-radius:14px;background:var(--ic-bg);overflow:hidden;
-  box-shadow:0 3px 9px rgba(107,90,94,.10);
+  border-radius:16px;overflow:hidden;
+  background:linear-gradient(135deg,#fff 0%,var(--ic-bg) 100%);
+  box-shadow:0 4px 14px rgba(248,195,205,.22);
 }
 .tb-item .ic .emoji-ic{font-size:22px;}
 .tb-item .nm{line-height:1.1;text-align:center;}
@@ -81,7 +82,7 @@ h2,h3,h4{margin:0;}
   background:linear-gradient(135deg,var(--blue-l),var(--amber-l));
   color:var(--ink);font-weight:600;
 }
-.tb-item.active .ic{background:#fff;box-shadow:0 2px 6px rgba(107,90,94,.10);}
+.tb-item.active .ic{background:#fff;box-shadow:0 4px 14px rgba(248,195,205,.22);}
 .tb-item:active{transform:scale(.95);}
 /* ============ 首页模块网格 ============ */
 .mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -95,8 +96,9 @@ h2,h3,h4{margin:0;}
 .mod-card:active{transform:scale(.96);}
 .mod-card .ic{
   width:50px;height:50px;display:flex;align-items:center;justify-content:center;
-  border-radius:18px;background:var(--ic-bg);overflow:hidden;
-  box-shadow:0 4px 12px rgba(107,90,94,.08);
+  border-radius:20px;overflow:hidden;
+  background:linear-gradient(135deg,#fff 0%,var(--ic-bg) 100%);
+  box-shadow:0 5px 16px rgba(248,195,205,.20);
 }
 .mod-card .ic .emoji-ic{font-size:26px;}
 .mod-card .nm{font-size:12px;color:var(--ink);font-weight:500;}
