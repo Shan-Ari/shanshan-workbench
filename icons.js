@@ -1,39 +1,8 @@
-/* ============ 手绘插画风 SVG 图标（莫兰迪色系） ============ */
-const IK = '#6E7A83';            /* 描边墨灰 */
-const BL = '#8FA3B3', BLl = '#C6D0D8', BLd = '#6E8597';   /* 灰蓝 */
-const RS = '#C2A6A8', RSl = '#E4D6D7';                     /* 灰粉 */
-const SG = '#A9B39B', SGl = '#DBDFD2';                     /* 鼠尾草绿 */
-const OA = '#ECE6DC', CR = '#F4F0EA';                      /* 燕麦/奶白 */
-const GD = '#C9B58B';                                      /* 柔赭石 */
-
-function svg(inner) {
-  return '<svg viewBox="0 0 48 48" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>';
+/* ============ 手绘插画风 PNG 图标 ============
+   图标由 AI 生成，统一莫兰迪色系、圆润可爱风格。
+   文件位置：shanshan-workbench/icons/<id>.png
+*/
+function icon(id) {
+  return `<img src="icons/${id}.png" class="ic-img" alt="" onerror="this.style.display='none'">`;
 }
-const ICONS = {
-  /* —— 模块图标 —— */
-  home: svg(`<path d="M24 8 L41 22 H32 V40 H16 V22 H7 Z" fill="${BLl}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><rect x="20" y="26" width="8" height="14" rx="2" fill="${CR}" stroke="${IK}" stroke-width="2"/><circle cx="24" cy="33" r="1.3" fill="${RS}"/>`),
-  plan: svg(`<rect x="12" y="9" width="24" height="30" rx="4" fill="${CR}" stroke="${IK}" stroke-width="2.2"/><path d="M17 16 l3 3 l5 -6" stroke="${SG}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 25 h13 M17 31 h10" stroke="${BL}" stroke-width="2.2" stroke-linecap="round"/>`),
-  english: svg(`<rect x="10" y="12" width="28" height="22" rx="5" fill="${BLl}" stroke="${IK}" stroke-width="2.2"/><text x="24" y="28" font-size="13" font-weight="700" text-anchor="middle" fill="${BLd}" font-family="Arial,sans-serif">Aa</text>`),
-  pet: svg(`<circle cx="24" cy="26" r="13" fill="${RSl}" stroke="${IK}" stroke-width="2.2"/><path d="M13 16 l3 9 M35 16 l-3 9" stroke="${IK}" stroke-width="2.2" stroke-linecap="round"/><circle cx="19" cy="25" r="2" fill="${IK}"/><circle cx="29" cy="25" r="2" fill="${IK}"/><path d="M22 31 q2 2 4 0" stroke="${IK}" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M24 28 v2" stroke="${IK}" stroke-width="1.6" stroke-linecap="round"/>`),
-  clip: svg(`<path d="M10 18 l5 -6 h27 v6 h-32 z" fill="${BLl}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><rect x="10" y="20" width="28" height="16" rx="3" fill="${CR}" stroke="${IK}" stroke-width="2.2"/><path d="M16 25 h16 M16 30 h11" stroke="${BL}" stroke-width="2" stroke-linecap="round"/>`),
-  book: svg(`<path d="M24 12 c-4 -3 -12 -3 -14 0 v24 c2 -3 10 -3 14 0 c4 -3 12 -3 14 0 V12 c-2 -3 -10 -3 -14 0 z" fill="${SGl}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 12 v24" stroke="${IK}" stroke-width="2.2"/><path d="M24 12 v9 l-3 -2 -3 2 V12" fill="${RS}"/>`),
-  poem: svg(`<rect x="13" y="10" width="22" height="28" rx="3" fill="${CR}" stroke="${IK}" stroke-width="2.2"/><path d="M13 16 h22 M13 24 h22 M13 32 h14" stroke="${BLl}" stroke-width="2" stroke-linecap="round"/><text x="24" y="22" font-size="12" text-anchor="middle" fill="${RS}" font-family="serif">诗</text>`),
-  note: svg(`<rect x="13" y="9" width="22" height="30" rx="4" fill="${CR}" stroke="${IK}" stroke-width="2.2"/><path d="M18 16 h10 M18 22 h14 M18 28 h14" stroke="${BLl}" stroke-width="2" stroke-linecap="round"/><path d="M30 30 l8 8" stroke="${IK}" stroke-width="2.6" stroke-linecap="round"/><path d="M33 33 l3 -1 -1 3 z" fill="${RS}"/>`),
-  sport: svg(`<path d="M14 24 h20" stroke="${IK}" stroke-width="6" stroke-linecap="round"/><rect x="9" y="19" width="6" height="10" rx="2" fill="${BL}" stroke="${IK}" stroke-width="1.4"/><rect x="33" y="19" width="6" height="10" rx="2" fill="${BL}" stroke="${IK}" stroke-width="1.4"/>`),
-  finance: svg(`<circle cx="24" cy="24" r="14" fill="${GD}" stroke="${IK}" stroke-width="2.2"/><text x="24" y="30" font-size="16" font-weight="700" text-anchor="middle" fill="${CR}" font-family="Arial,sans-serif">¥</text>`),
-  ledger: svg(`<path d="M15 9 h18 v30 l-3 -3 -3 3 -3 -3 -3 3 -3 -3 -3 3 V9 z" fill="${CR}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M19 16 h10 M19 21 h10 M19 26 h7" stroke="${BL}" stroke-width="2" stroke-linecap="round"/>`),
-  repay: svg(`<rect x="9" y="16" width="30" height="20" rx="4" fill="${BL}" stroke="${IK}" stroke-width="2.2"/><rect x="9" y="21" width="30" height="5" fill="${BLd}"/><rect x="15" y="30" width="9" height="3" rx="1.5" fill="${CR}"/>`),
-  habit: svg(`<path d="M24 39 V23" stroke="${SG}" stroke-width="2.6" stroke-linecap="round"/><path d="M24 27 c-8 -2 -12 -8 -12 -14 c8 0 13 5 13 12 z" fill="${SGl}" stroke="${IK}" stroke-width="2" stroke-linejoin="round"/><path d="M24 23 c8 -2 12 -8 12 -14 c-8 0 -13 5 -13 12 z" fill="${SG}" stroke="${IK}" stroke-width="2" stroke-linejoin="round"/><path d="M16 41 h16" stroke="${IK}" stroke-width="2.2" stroke-linecap="round"/>`),
-  calendar: svg(`<rect x="10" y="13" width="28" height="26" rx="4" fill="${CR}" stroke="${IK}" stroke-width="2.2"/><path d="M10 20 h28" stroke="${BL}" stroke-width="2.4"/><rect x="16" y="8" width="4" height="6" rx="2" fill="${RS}"/><rect x="28" y="8" width="4" height="6" rx="2" fill="${RS}"/><path d="M17 28 h5 M26 28 h5 M17 33 h5" stroke="${BLl}" stroke-width="2" stroke-linecap="round"/>`),
-  countdown: svg(`<path d="M16 10 h16 M16 38 h16" stroke="${IK}" stroke-width="2.4" stroke-linecap="round"/><path d="M17 10 c0 9 14 9 14 19 H17 Z" fill="${BLl}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M31 38 c0 -9 -14 -9 -14 -19 H31 Z" fill="${RSl}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/>`),
-  weekly: svg(`<rect x="13" y="9" width="22" height="30" rx="4" fill="${CR}" stroke="${IK}" stroke-width="2.2"/><rect x="20" y="6" width="8" height="6" rx="2" fill="${BL}"/><text x="24" y="29" font-size="13" font-weight="700" text-anchor="middle" fill="${BLd}" font-family="Arial,sans-serif">W</text>`),
-  monthly: svg(`<path d="M30 12 a14 14 0 1 0 6 24 a11 11 0 1 1 -6 -24 z" fill="${GD}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="1.6" fill="${RS}"/><circle cx="13" cy="20" r="1.1" fill="${BL}"/>`),
-  /* —— 开屏插画 —— */
-  sp_coffee: svg(`<path d="M13 18 h20 v10 a10 10 0 0 1 -20 0 z" fill="${CR}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M33 20 h4 a4 4 0 0 1 0 8 h-4" fill="none" stroke="${IK}" stroke-width="2.2"/><path d="M18 13 q2 -3 0 -6 M24 13 q2 -3 0 -6" stroke="${BLl}" stroke-width="2" stroke-linecap="round" fill="none"/>`),
-  sp_book: svg(`<path d="M24 12 c-4 -3 -12 -3 -14 0 v24 c2 -3 10 -3 14 0 c4 -3 12 -3 14 0 V12 c-2 -3 -10 -3 -14 0 z" fill="${SGl}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 12 v24" stroke="${IK}" stroke-width="2.2"/>`),
-  sp_bear: svg(`<circle cx="24" cy="27" r="12" fill="${RSl}" stroke="${IK}" stroke-width="2.2"/><circle cx="16" cy="15" r="5" fill="${RSl}" stroke="${IK}" stroke-width="2.2"/><circle cx="32" cy="15" r="5" fill="${RSl}" stroke="${IK}" stroke-width="2.2"/><circle cx="20" cy="26" r="1.6" fill="${IK}"/><circle cx="28" cy="26" r="1.6" fill="${IK}"/><circle cx="24" cy="30" r="2" fill="${RS}"/>`),
-  sp_plant: svg(`<path d="M18 30 h12 l-2 9 h-8 z" fill="${GD}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 30 V20 M24 24 c-6 -2 -8 -8 -8 -12 c6 0 9 4 9 10 M24 22 c6 -2 8 -8 8 -12 c-6 0 -9 4 -9 10" fill="none" stroke="${SG}" stroke-width="2.4" stroke-linecap="round"/>`),
-  sp_music: svg(`<path d="M14 28 V22 a10 10 0 0 1 20 0 V28" fill="none" stroke="${IK}" stroke-width="2.4" stroke-linecap="round"/><rect x="11" y="27" width="6" height="9" rx="3" fill="${BL}" stroke="${IK}" stroke-width="1.8"/><rect x="31" y="27" width="6" height="9" rx="3" fill="${BL}" stroke="${IK}" stroke-width="1.8"/>`),
-  sp_leaf: svg(`<path d="M24 38 C10 32 10 14 24 10 C38 14 38 32 24 38 Z" fill="${SGl}" stroke="${IK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 12 V36 M24 18 l-7 -3 M24 24 l7 -3 M24 30 l-7 -3" stroke="${SG}" stroke-width="1.8" stroke-linecap="round" fill="none"/>`)
-};
-function icon(id) { return ICONS[id] || ICONS.home; }
+if (typeof module !== 'undefined' && module.exports) module.exports = { icon };
