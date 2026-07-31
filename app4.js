@@ -1,19 +1,19 @@
 /* ============ 记账 ============ */
 const EXP_CATS = ['餐饮', '购物', '通勤', '娱乐', '居住', '医疗', '人情', '其他'];
 const INC_CATS = ['工资', '理财收益', '副业', '其他'];
-const ACCTS = ['支付宝', '微信', '银行卡'];
+const ACCTS = ['支付宝', '微信', '招商银行', '工商银行', '建设银行', '邮政储蓄'];
 function acctBalances() {
-  const base = store.g('acctBase', { 支付宝: 0, 微信: 0, 银行卡: 0 });
-  const bal = { 支付宝: base['支付宝'] || 0, 微信: base['微信'] || 0, 银行卡: base['银行卡'] || 0 };
+  const base = store.g('acctBase', {});
+  const bal = {}; ACCTS.forEach(a => bal[a] = base[a] || 0);
   store.g('ledger', []).forEach(x => {
-    const ac = x.acct || '银行卡';
-    if (!bal[ac]) return;
+    let ac = x.acct; if (ac === '银行卡' || !ac) ac = '招商银行'; // 旧数据“银行卡”并入招商银行
+    if (!bal.hasOwnProperty(ac)) return;
     if (x.type === '收入') bal[ac] += x.amt; else if (x.type === '支出') bal[ac] -= x.amt;
   });
   return bal;
 }
 function saveAcctBase() {
-  const base = { 支付宝: (+$('#ab0').value) || 0, 微信: (+$('#ab1').value) || 0, 银行卡: (+$('#ab2').value) || 0 };
+  const base = {}; ACCTS.forEach((a, i) => { base[a] = (+$('#ab' + i).value) || 0; });
   store.s('acctBase', base); S.acctEdit = false; render();
 }
 function render_ledger() {
@@ -36,16 +36,14 @@ function render_ledger() {
     </div>
   </div>
   <div class="card"><h3>💰 账户余额</h3>
-    ${(() => { const bal = acctBalances(); const base = store.g('acctBase', { 支付宝: 0, 微信: 0, 银行卡: 0 }); const total = bal['支付宝'] + bal['微信'] + bal['银行卡'];
+    ${(() => { const bal = acctBalances(); const base = store.g('acctBase', {}); const total = ACCTS.reduce((a, n) => a + (bal[n] || 0), 0);
       const row = (n, v) => `<div class="row" style="justify-content:space-between"><span class="li-sub">${n}</span><b style="color:#3f9d6b">¥${v.toFixed(0)}</b></div>`;
       const set = S.acctEdit ? `<div class="row mt" style="flex-wrap:wrap;gap:6px;align-items:center">
-        <label class="li-sub">支付宝初始<input type="number" id="ab0" value="${base['支付宝']}" style="width:74px"></label>
-        <label class="li-sub">微信初始<input type="number" id="ab1" value="${base['微信']}" style="width:74px"></label>
-        <label class="li-sub">银行卡初始<input type="number" id="ab2" value="${base['银行卡']}" style="width:74px"></label>
+        ${ACCTS.map((a, i) => `<label class="li-sub">${a}初始<input type="number" id="ab${i}" value="${base[a] || 0}" style="width:74px"></label>`).join('')}
         <button class="btn sm" onclick="saveAcctBase()">保存</button>
         <button class="btn sm ghost" onclick="S.acctEdit=false;render()">取消</button>
       </div>` : `<div class="row mt"><button class="btn sm ghost" onclick="S.acctEdit=true;render()">⚙ 设置初始余额</button></div>`;
-      return row('支付宝', bal['支付宝']) + row('微信', bal['微信']) + row('银行卡', bal['银行卡']) +
+      return ACCTS.map(a => row(a, bal[a])).join('') +
         `<div class="row" style="justify-content:space-between;margin-top:4px;border-top:1px dashed #e3e9f2;padding-top:6px"><b>合计</b><b style="color:#5b8def">¥${total.toFixed(0)}</b></div>` + set;
     })()}
   </div>
