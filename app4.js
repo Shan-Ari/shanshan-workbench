@@ -600,7 +600,7 @@ function render_habit() {
     const hc = habitTodayChecks(h);
     const done = hc.length, reached = done >= h.times, active = habitActiveToday(h), streak = habitStreak(h);
     const chips = hc.map(c => `<span class="tag b">${c.ts.slice(11)}</span>`).join('');
-    const timeTxt = (h.start && h.end) ? (h.start + ' – ' + h.end) : '不限时间';
+    const timeTxt = (h.start && h.end) ? (h.start + ' – ' + h.end) : h.start ? ('从 ' + h.start) : h.end ? ('至 ' + h.end) : '不限时间';
     return `<div class="card ${active ? '' : 'habit-off'}">
       <div class="row" style="justify-content:space-between">
         <div class="li-main" style="font-weight:700">${esc(h.name)}</div>
@@ -639,8 +639,8 @@ function render_habit() {
   <div class="card"><h3>➕ ${edit ? '修改习惯' : '添加习惯'}</h3>
     <div class="row"><input class="grow" id="hbName" placeholder="习惯名称，如 早睡 / 早起 / 喝水 / 背单词 / 学习" value="${edit ? esc(edit.name) : ''}"></div>
     <div class="row mt">
-      <label class="li-sub">开始<input type="time" id="hbStart" value="${edit ? edit.start : '22:00'}"></label>
-      <label class="li-sub">结束<input type="time" id="hbEnd" value="${edit ? edit.end : '23:00'}"></label>
+      <label class="li-sub">开始(选填)<input type="time" id="hbStart" value="${edit ? edit.start : ''}"></label>
+      <label class="li-sub">结束(选填)<input type="time" id="hbEnd" value="${edit ? edit.end : ''}"></label>
       <select id="hbFreq" onchange="document.getElementById('hbWeekBox').style.display=this.value==='weekly'?'':'none'">${FREQS.map(f => `<option value="${f[0]}" ${edit && edit.freq === f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}</select>
       <label class="li-sub">次数<input type="number" id="hbTimes" value="${edit ? edit.times : 1}" min="1" style="width:54px">次/日</label>
     </div>
@@ -658,8 +658,8 @@ function render_habit() {
 }
 function saveHabit() {
   const name = $('#hbName').value.trim(); if (!name) return;
-  const start = $('#hbStart').value || '00:00';
-  const end = $('#hbEnd').value || '00:00';
+  const start = $('#hbStart').value || '';
+  const end = $('#hbEnd').value || '';
   const freq = $('#hbFreq').value;
   const times = Math.max(1, (+$('#hbTimes').value) || 1);
   let days = [];
