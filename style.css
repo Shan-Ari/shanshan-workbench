@@ -29,7 +29,7 @@ h2,h3,h4{margin:0;}
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:32px 24px;
 }
-.ic-img{display:block;}
+.emoji-ic{font-size:24px;line-height:1;display:block;text-align:center;}
 .sp-icons{display:flex;gap:12px;justify-content:center;margin-bottom:8px;}
 .sp-icons span{
   width:52px;height:52px;display:flex;align-items:center;justify-content:center;
@@ -38,9 +38,7 @@ h2,h3,h4{margin:0;}
   box-shadow:0 4px 14px rgba(248,195,205,.22);
   animation:float 3s ease-in-out infinite;
 }
-.sp-icons .ic-img{width:120%;height:120%;object-fit:cover;object-position:center;}
-/* 新图标已按粉黄绿配色生成，仅轻微增强饱和度 */
-.ic-img{filter:saturate(1.05);}
+.sp-icons .emoji-ic{font-size:28px;}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .sp-date{margin-top:26px;font-size:14px;color:var(--ink);letter-spacing:1px;text-shadow:0 1px 2px rgba(255,255,255,.9);}
 .sp-hi{margin-top:10px;font-size:30px;font-weight:700;color:var(--ink);text-shadow:0 1px 3px rgba(255,255,255,.95);}
@@ -74,7 +72,7 @@ h2,h3,h4{margin:0;}
   border-radius:14px;background:var(--ic-bg);overflow:hidden;
   box-shadow:0 3px 9px rgba(184,224,210,.22);
 }
-.tb-item .ic .ic-img{width:120%;height:120%;object-fit:cover;object-position:center;}
+.tb-item .ic .emoji-ic{font-size:22px;}
 .tb-item .nm{line-height:1.1;text-align:center;}
 .tb-item.active{
   background:linear-gradient(135deg,var(--blue-l),var(--amber-l));
@@ -97,7 +95,7 @@ h2,h3,h4{margin:0;}
   border-radius:18px;background:var(--ic-bg);overflow:hidden;
   box-shadow:0 4px 12px rgba(184,224,210,.18);
 }
-.mod-card .ic .ic-img{width:120%;height:120%;object-fit:cover;object-position:center;}
+.mod-card .ic .emoji-ic{font-size:26px;}
 .mod-card .nm{font-size:12px;color:var(--ink);font-weight:500;}
 .mod-card.last{background:linear-gradient(135deg,var(--blue-l),var(--amber-l));border-color:transparent;}
 /* ============ 主区 ============ */
