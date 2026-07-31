@@ -665,6 +665,7 @@ function delHabit(id) {
 
 /* ============ 开屏 & 初始化 ============ */
 function initSplash() {
+  $('#spIcons').innerHTML = ['sp_coffee', 'sp_book', 'sp_bear', 'sp_plant', 'sp_music', 'sp_leaf'].map(k => `<span>${icon(k)}</span>`).join('');
   const d = new Date();
   const wd = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][d.getDay()];
   $('#spDate').textContent = d.getFullYear() + ' 年 ' + (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日 · ' + wd;

@@ -75,14 +75,14 @@ function go(id) { location.hash = '#' + id; }
 function curPage() { const h = location.hash.replace('#', ''); return PAGES.some(p => p.id === h) ? h : 'home'; }
 /* 顶部常驻快捷栏：4 项常用，吸顶固定、随时跳转 */
 const TOP = [
-  { id: 'home', ic: '🏠', nm: '首页' },
-  { id: 'ledger', ic: '🧾', nm: '记账' },
-  { id: 'plan', ic: '✅', nm: '待办' },
-  { id: 'habit', ic: '🌿', nm: '打卡' }
+  { id: 'home', ic: 'home', nm: '首页' },
+  { id: 'ledger', ic: 'ledger', nm: '记账' },
+  { id: 'plan', ic: 'plan', nm: '待办' },
+  { id: 'habit', ic: 'habit', nm: '打卡' }
 ];
 function buildSidebar() {
   const cur = curPage();
-  $('#sidebar').innerHTML = TOP.map(t => `<div class="tb-item ${cur === t.id ? 'active' : ''}" onclick="go('${t.id}')"><span class="ic">${t.ic}</span><span class="nm">${t.nm}</span></div>`).join('');
+  $('#sidebar').innerHTML = TOP.map(t => `<div class="tb-item ${cur === t.id ? 'active' : ''}" onclick="go('${t.id}')"><span class="ic">${icon(t.ic)}</span><span class="nm">${t.nm}</span></div>`).join('');
 }
 function render() {
   buildSidebar();
@@ -138,7 +138,7 @@ function render_home() {
   const mods = PAGES.filter(p => p.id !== 'home');
   const grid = mods.map((p, i) => {
     const last = i >= mods.length - 2;
-    return `<div class="mod-card ${last ? 'last' : ''}" onclick="go('${p.id}')"><span class="ic">${p.ic}</span><span class="nm">${p.nm}</span></div>`;
+    return `<div class="mod-card ${last ? 'last' : ''}" onclick="go('${p.id}')"><span class="ic">${icon(p.id)}</span><span class="nm">${p.nm}</span></div>`;
   }).join('');
   return `
   <div class="page-title">🏠 首页 · 全局导航</div>
