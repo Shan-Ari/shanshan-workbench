@@ -44,6 +44,8 @@ const PAGES = [
   { id: 'sport', ic: '💪', nm: '运动计划' },
   { id: 'finance', ic: '💰', nm: '理财计划' },
   { id: 'ledger', ic: '🧾', nm: '记账' },
+  { id: 'repay', ic: '💳', nm: '还款' },
+  { id: 'habit', ic: '🌿', nm: '习惯打卡' },
   { id: 'calendar', ic: '📅', nm: '日程日历' },
   { id: 'countdown', ic: '⏳', nm: '倒计时' },
   { id: 'weekly', ic: '🗓️', nm: '周复盘' },
@@ -56,7 +58,7 @@ const QUICK = [
   { id: 'countdown', ic: '⏳', nm: '倒计时' }
 ];
 /* 页面临时状态 */
-const S = { engTab: 'speak', planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', cdEdit: null, repayEdit: null, repayPlan: null, acctEdit: null };
+const S = { engTab: 'speak', planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', cdEdit: null, repayEdit: null, repayPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all' };
 
 /* ============ 开屏页数据 ============ */
 const QUOTES = [

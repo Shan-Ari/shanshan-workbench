@@ -74,9 +74,14 @@ function render_ledger() {
       <div class="li-sub">${x.date}${x.note ? ' · ' + esc(x.note) : ''}</div></div>
       <button class="btn sm warn" onclick="delLedger('${x.id}')">删</button></div>`).join('') || '<div class="empty">本月还没有账目</div>'}
   </div>
-  ${render_repay()}
 `;}
-/* ============ 还款管理（与收支分开，独立板块） ============ */
+/* ============ 还款管理（与收支分开，独立页面） ============ */
+function render_repay() {
+  return `
+  <div class="page-title">💳 还款管理</div>
+  <div class="page-sub">与日常收支分开记录，每月还款日前提醒你</div>
+  ${repaySection()}`;
+}
 function repayNext(plan) {
   const now = new Date(); now.setHours(0, 0, 0, 0);
   let y = now.getFullYear(), mo = now.getMonth();
@@ -85,7 +90,7 @@ function repayNext(plan) {
   const days = Math.round((t - now) / 864e5);
   return { date: t, days };
 }
-function render_repay() {
+function repaySection() {
   const plans = store.g('repayPlans', []);
   const recs = store.g('repayRecords', []);
   const m = S.ledMonth;
@@ -458,6 +463,205 @@ function saveReview(key, label) {
   store.s(key, recs); render();
 }
 function delReview(key, id) { if (!confirm('删除这份复盘？')) return; store.s(key, store.g(key, []).filter(x => x.id !== id)); render(); }
+
+/* ============ 习惯打卡 ============ */
+const FREQS = [['daily', '每日'], ['workday', '工作日'], ['weekend', '周末'], ['weekly', '自定义星期']];
+const WD_SHORT = ['日', '一', '二', '三', '四', '五', '六'];
+function nowISO() { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function habitActiveToday(h) {
+  const wd = new Date().getDay();
+  if (h.freq === 'workday') return wd >= 1 && wd <= 5;
+  if (h.freq === 'weekend') return wd === 0 || wd === 6;
+  if (h.freq === 'weekly') return (h.days || []).includes(wd);
+  return true; // daily
+}
+function freqLabel(h) {
+  if (h.freq === 'daily') return '每日';
+  if (h.freq === 'workday') return '工作日';
+  if (h.freq === 'weekend') return '周末';
+  if (h.freq === 'weekly') return '每周 ' + (h.days || []).map(d => WD_SHORT[d]).join('');
+  return '';
+}
+function habitTodayChecks(h) {
+  const t = today();
+  return store.g('habitChecks', []).filter(c => c.habitId === h.id && c.ts.slice(0, 10) === t);
+}
+function habitStreak(h) {
+  const byDate = {};
+  store.g('habitChecks', []).filter(c => c.habitId === h.id).forEach(c => { const d = c.ts.slice(0, 10); byDate[d] = (byDate[d] || 0) + 1; });
+  const set = new Set();
+  Object.keys(byDate).forEach(d => { if (byDate[d] >= h.times) set.add(d); });
+  return streakOf([...set]);
+}
+function habitActiveOn(h, dateStr) {
+  const wd = new Date(dateStr + 'T00:00:00').getDay();
+  if (h.freq === 'workday') return wd >= 1 && wd <= 5;
+  if (h.freq === 'weekend') return wd === 0 || wd === 6;
+  if (h.freq === 'weekly') return (h.days || []).includes(wd);
+  return true;
+}
+function habitDayRate(dateStr, hid) {
+  const habits = store.g('habits', []);
+  const checks = store.g('habitChecks', []);
+  if (hid && hid !== 'all') {
+    const h = habits.find(x => x.id === hid);
+    if (!h) return { active: 0, reached: 0, rate: -1 };
+    const active = habitActiveOn(h, dateStr) ? 1 : 0;
+    const cnt = checks.filter(c => c.habitId === h.id && c.ts.slice(0, 10) === dateStr).length;
+    return { active, reached: active && cnt >= h.times ? 1 : 0, rate: active ? (cnt >= h.times ? 1 : 0) : -1 };
+  }
+  const act = habits.filter(h => habitActiveOn(h, dateStr));
+  if (!act.length) return { active: 0, reached: 0, rate: -1 };
+  const reached = act.filter(h => {
+    const cnt = checks.filter(c => c.habitId === h.id && c.ts.slice(0, 10) === dateStr).length;
+    return cnt >= h.times;
+  }).length;
+  return { active: act.length, reached, rate: reached / act.length };
+}
+function heatLevel(rate) {
+  if (rate < 0) return 0;
+  if (rate === 0) return 1;
+  if (rate < 0.5) return 2;
+  if (rate < 1) return 3;
+  return 4;
+}
+function render_heatmap() {
+  const hid = S.habitHeat || 'all';
+  const habits = store.g('habits', []);
+  const WEEKS = 22;
+  const today = new Date();
+  const wd0 = (today.getDay() + 6) % 7;
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - wd0 - (WEEKS - 1) * 7);
+  const MON = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+  let html = '', lastMonth = -1;
+  for (let c = 0; c < WEEKS; c++) {
+    let monthLabel = '', colCells = '';
+    for (let r = 0; r < 7; r++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + c * 7 + r);
+      const ds = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+      const rate = habitDayRate(ds, hid);
+      const lvl = heatLevel(rate.rate);
+      const tip = (d.getMonth() + 1) + '月' + d.getDate() + '日 · ' + (rate.rate < 0 ? '无打卡安排' : '达成 ' + rate.reached + '/' + rate.active);
+      colCells += `<div class="heat heat-${lvl}" title="${tip}"></div>`;
+      if (r === 0 && d.getMonth() !== lastMonth) { monthLabel = MON[d.getMonth()]; lastMonth = d.getMonth(); }
+    }
+    html += `<div class="heat-col"><div class="heat-m">${monthLabel}</div>${colCells}</div>`;
+  }
+  const selOpts = habits.map(h => `<option value="${h.id}" ${hid === h.id ? 'selected' : ''}>${esc(h.name)}</option>`).join('');
+  return `
+  <div class="card">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <h3 style="margin:0">📊 打卡热力图</h3>
+      <select id="hbHeatSel" onchange="S.habitHeat=this.value;render()">
+        <option value="all" ${hid === 'all' ? 'selected' : ''}>全部习惯</option>${selOpts}
+      </select>
+    </div>
+    <div class="li-sub" style="margin:4px 0 8px">近 5 个月打卡完成度（颜色越深代表当天达成习惯越多）</div>
+    <div class="heat-wrap"><div class="heat-grid">${html}</div></div>
+    <div class="row mt" style="align-items:center;gap:5px">
+      <span class="li-sub">少</span>
+      <div class="heat heat-1"></div><div class="heat heat-2"></div><div class="heat heat-3"></div><div class="heat heat-4"></div>
+      <span class="li-sub">多</span>
+      <div class="heat heat-0" style="margin-left:10px"></div><span class="li-sub">无安排</span>
+    </div>
+  </div>`;
+}
+function render_habit() {
+  const habits = store.g('habits', []);
+  const checks = store.g('habitChecks', []);
+  const edit = S.habitEdit ? habits.find(x => x.id === S.habitEdit) : null;
+  const t = today();
+  const doneToday = habits.filter(h => habitActiveToday(h) && habitTodayChecks(h).length >= h.times).length;
+  const checkedToday = checks.filter(c => c.ts.slice(0, 10) === t).length;
+  const activeCnt = habits.filter(habitActiveToday).length;
+  const card = h => {
+    const hc = habitTodayChecks(h);
+    const done = hc.length, reached = done >= h.times, active = habitActiveToday(h), streak = habitStreak(h);
+    const chips = hc.map(c => `<span class="tag b">${c.ts.slice(11)}</span>`).join('');
+    const timeTxt = (h.start && h.end) ? (h.start + ' – ' + h.end) : '不限时间';
+    return `<div class="card ${active ? '' : 'habit-off'}">
+      <div class="row" style="justify-content:space-between">
+        <div class="li-main" style="font-weight:700">${esc(h.name)}</div>
+        <div class="row" style="gap:6px">
+          <button class="btn sm ghost" onclick="S.habitEdit='${h.id}';render()">改</button>
+          <button class="btn sm warn" onclick="delHabit('${h.id}')">删</button>
+        </div>
+      </div>
+      ${h.note ? `<div class="li-sub">${esc(h.note)}</div>` : ''}
+      <div class="row" style="justify-content:space-between;margin-top:6px;flex-wrap:wrap;gap:4px">
+        <span class="li-sub">🕒 ${timeTxt}</span>
+        <span class="li-sub">📆 ${freqLabel(h)}</span>
+        <span class="li-sub">🔁 ${h.times} 次/日</span>
+        ${streak > 0 ? `<span class="li-sub">🔥 连续 ${streak} 天</span>` : ''}
+      </div>
+      ${active ? `<div class="row" style="justify-content:space-between;margin-top:8px">
+          <span class="tag ${reached ? 'g' : 'p'}">${done} / ${h.times} 次</span>
+          <button class="btn sm ${reached ? 'ghost' : 'p'}" onclick="checkHabit('${h.id}')">${reached ? '已达标 🎉' : '打卡 ➕'}</button>
+        </div>
+        ${chips ? `<div class="row mt" style="flex-wrap:wrap;gap:4px">${chips}</div>` : ''}`
+      : `<div class="li-sub" style="margin-top:8px">😴 今天是该习惯的休息日</div>`}
+    </div>`;
+  };
+  const showWeek = edit && edit.freq === 'weekly';
+  const dayChecks = edit ? (edit.days || []) : [];
+  return `
+  <div class="page-title">🌿 习惯打卡</div>
+  <div class="page-sub">把好习惯变成每天的仪式感 · 打卡即记录时间点</div>
+  <div class="card"><div class="stat-grid g2">
+    <div class="stat"><div class="num">${doneToday}/${activeCnt}</div><div class="lb">今日习惯达成</div></div>
+    <div class="stat"><div class="num pk">${checkedToday}</div><div class="lb">今日打卡次数</div></div>
+    <div class="stat"><div class="num">${habits.length}</div><div class="lb">习惯总数</div></div>
+    <div class="stat"><div class="num" style="color:#5b8def">${activeCnt}</div><div class="lb">今日需打卡</div></div>
+  </div></div>
+  ${render_heatmap()}
+  <div class="card"><h3>➕ ${edit ? '修改习惯' : '添加习惯'}</h3>
+    <div class="row"><input class="grow" id="hbName" placeholder="习惯名称，如 早睡 / 早起 / 喝水 / 背单词 / 学习" value="${edit ? esc(edit.name) : ''}"></div>
+    <div class="row mt">
+      <label class="li-sub">开始<input type="time" id="hbStart" value="${edit ? edit.start : '22:00'}"></label>
+      <label class="li-sub">结束<input type="time" id="hbEnd" value="${edit ? edit.end : '23:00'}"></label>
+      <select id="hbFreq" onchange="document.getElementById('hbWeekBox').style.display=this.value==='weekly'?'':'none'">${FREQS.map(f => `<option value="${f[0]}" ${edit && edit.freq === f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}</select>
+      <label class="li-sub">次数<input type="number" id="hbTimes" value="${edit ? edit.times : 1}" min="1" style="width:54px">次/日</label>
+    </div>
+    <div class="row mt" id="hbWeekBox" style="display:${showWeek ? '' : 'none'}">
+      ${WD_SHORT.map((w, i) => `<label class="li-sub" style="margin-right:8px"><input type="checkbox" class="hbDay" value="${i}" ${dayChecks.includes(i) ? 'checked' : ''}>周${w}</label>`).join('')}
+    </div>
+    <div class="row mt"><input class="grow" id="hbNote" placeholder="备注(选填)，如 早睡用于记录实际入睡时间" value="${edit ? esc(edit.note || '') : ''}"></div>
+    <div class="row mt">
+      <button class="btn ${edit ? 'pink' : ''}" onclick="saveHabit()">${edit ? '保存修改 ✔' : '添加 ➕'}</button>
+      ${edit ? '<button class="btn sm ghost" onclick="S.habitEdit=null;render()">取消</button>' : ''}
+    </div>
+  </div>
+  ${habits.length ? habits.map(card).join('') : '<div class="empty">还没有习惯，先添加一个吧～</div>'}
+  `;
+}
+function saveHabit() {
+  const name = $('#hbName').value.trim(); if (!name) return;
+  const start = $('#hbStart').value || '00:00';
+  const end = $('#hbEnd').value || '00:00';
+  const freq = $('#hbFreq').value;
+  const times = Math.max(1, (+$('#hbTimes').value) || 1);
+  let days = [];
+  if (freq === 'weekly') document.querySelectorAll('.hbDay:checked').forEach(c => days.push(+c.value));
+  const note = $('#hbNote').value.trim();
+  const all = store.g('habits', []);
+  if (S.habitEdit) {
+    const i = all.findIndex(x => x.id === S.habitEdit);
+    if (i >= 0) all[i] = { ...all[i], name, start, end, freq, times, days, note };
+    S.habitEdit = null;
+  } else all.push({ id: uid(), name, start, end, freq, times, days, note });
+  store.s('habits', all); render();
+}
+function checkHabit(id) {
+  const arr = store.g('habitChecks', []);
+  arr.push({ id: uid(), habitId: id, ts: nowISO() });
+  store.s('habitChecks', arr); render();
+}
+function delHabit(id) {
+  if (!confirm('删除这个习惯？相关打卡记录也会一并清除。')) return;
+  store.s('habits', store.g('habits', []).filter(x => x.id !== id));
+  store.s('habitChecks', store.g('habitChecks', []).filter(c => c.habitId !== id));
+  render();
+}
 
 /* ============ 开屏 & 初始化 ============ */
 function initSplash() {
