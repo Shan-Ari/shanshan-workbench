@@ -673,7 +673,7 @@ function initSplash() {
   const setQ = () => { $('#spQuote').style.opacity = 0; setTimeout(() => { $('#spQuote').textContent = QUOTES[qi % QUOTES.length]; $('#spQuote').style.opacity = 1; qi++; }, 350); };
   $('#spQuote').textContent = QUOTES[qi % QUOTES.length]; qi++;
   const timer = setInterval(setQ, 4000);
-  $('#spEnter').onclick = () => { clearInterval(timer); $('#splash').style.display = 'none'; go('home'); render(); };
+  $('#spEnter').onclick = () => { clearInterval(timer); const sp = $('#splash'); sp.style.opacity = '0'; setTimeout(() => { sp.style.display = 'none'; }, 400); go('home'); render(); };
 }
 (function init() {
   /* 每日登录自动打卡 */
