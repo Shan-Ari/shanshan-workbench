@@ -321,7 +321,7 @@ function krBody() {
     const today3 = KR_CULTURE.slice(start, start + 3);
     body = `<div class="card"><h3>🍱 韩国文化（每日 3 条）</h3></div>` + today3.map(c => `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(c.c)}</b></div><div class="poem-sec" style="margin-top:6px">${esc(c.zh)}</div></div>`).join('');
   } else if (S.krSub === 'vocab') {
-    body = myVocabManage('ko-KR', 'ko', 'MY_KR', MY_KR_CFG);
+    body = vocabFrag('ko-KR', 'kr', 'MY_KR', MY_KR_CFG);
   }
   return `<div class="tabs">${tabs.map(t => `<div class="tab ${S.krSub === t[0] ? 'active' : ''}" onclick="S.krSub='${t[0]}';render()">${t[1]}</div>`).join('')}</div>${body}
     <div class="li-sub" style="margin-top:10px">🔊 点喇叭跟读原音 · 🎙 点麦克风录下你的发音对比（需授权麦克风，建议用 https 或 localhost 打开）</div>`;
@@ -376,7 +376,7 @@ function jpBody() {
     const today3 = JP_CULTURE.slice(start, start + 3);
     body = `<div class="card"><h3>🍱 日本文化（每日 3 条）</h3></div>` + today3.map(c => `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(c.c)}</b></div><div class="poem-sec" style="margin-top:6px">${esc(c.zh)}</div></div>`).join('');
   } else if (S.jpSub === 'vocab') {
-    body = myVocabManage('ja-JP', 'ja', 'MY_JP', MY_JP_CFG);
+    body = vocabFrag('ja-JP', 'jp', 'MY_JP', MY_JP_CFG);
   }
   return `<div class="tabs">${tabs.map(t => `<div class="tab ${S.jpSub === t[0] ? 'active' : ''}" onclick="S.jpSub='${t[0]}';render()">${t[1]}</div>`).join('')}</div>${body}
     <div class="li-sub" style="margin-top:10px">🔊 点喇叭跟读原音 · 🎙 点麦克风录下你的发音对比（需授权麦克风，建议用 https 或 localhost 打开）</div>`;
@@ -984,7 +984,7 @@ function vbBody(src, srcName, cfg) {
         </div>
       </div>
       <div class="li-sub" style="margin-top:4px">${esc(w.mean)}</div>
-      ${w.ex.map((x, ei) => `<div class="list-item" style="border:none;padding:6px 0">
+      ${(w.ex || []).map((x, ei) => `<div class="list-item" style="border:none;padding:6px 0">
         <div class="li-main" style="display:flex;gap:6px;align-items:flex-start"><span style="flex:1">${esc(x[exField])}<div class="li-sub">${esc(x.zh)}</div></span>
         <button class="btn sm" onclick="vbSpeakEx('${srcName}',${gi},${ei},'${lang}','${exField}')">🔊</button></div>
         <div class="row mt" style="justify-content:flex-start"><span id="vbx_${srcName}_${gi}_${ei}"></span><button class="btn sm ghost" onclick="recToggle('vbx_${srcName}_${gi}_${ei}','${lang}')">🎙 跟读</button></div>
@@ -1091,10 +1091,9 @@ function loadMyPreset(lang) {
   render();
   const msg = document.getElementById('mw_preset_msg'); if (msg) msg.textContent = `已加入预设词 ${added} 个（跳过重复 ${dup} 个），已学进度已合并`;
 }
-function myVocabManage(lang, exField, srcName, cfg) {
+function vocabLibBody(lang, srcName, cfg) {
   const storeKey = myStoreKey(lang);
   const list = store.g(storeKey, []);
-  const src = getSrc(srcName);
   const packThemes = (VOCAB_PACKS[lang] && Object.keys(VOCAB_PACKS[lang])) || [];
   const packSection = packThemes.length ? `<div class="card"><h3>📦 主题词包（一键加入 · ${packThemes.length} 类）</h3>
     <div class="li-sub" style="margin-bottom:6px">选一个主题，点「加载」即可把该主题词包加入你的词库，并自动进入艾宾浩斯复习。不同主题互不重复，可多次加载不同主题来扩充词汇量。</div>
@@ -1108,8 +1107,6 @@ function myVocabManage(lang, exField, srcName, cfg) {
     <div class="row"><button class="btn" onclick="loadMyPreset('${lang}')">加入预设词库 ➕</button><span id="mw_preset_msg" class="li-sub"></span></div>
   </div>` : '';
   const phHint = lang === 'en-US' ? 'apple' : lang === 'ko-KR' ? '사과' : 'りんご';
-  const learn = list.length ? `<div class="card"><h3>📚 我的词库学习区（${list.length} 词）</h3>${vbBody(src, srcName, cfg)}</div>`
-                            : '<div class="empty" style="padding:14px">词库还是空的，先在上方添加或导入单词吧～</div>';
   return `
   <div class="card"><h3>➕ 手动添加单词</h3>
     <div class="row"><input id="mw_w" placeholder="单词，如 ${phHint}"><input id="mw_ph" placeholder="音标(选填)"><input class="grow" id="mw_mean" placeholder="释义，如：苹果"></div>
@@ -1139,6 +1136,20 @@ function myVocabManage(lang, exField, srcName, cfg) {
       </div>
     </details>`;
   })() : ''}
-  ${learn}
   `;
+}
+
+function vocabStudyBody(lang, srcName, cfg) {
+  const src = getSrc(srcName);
+  const list = store.g(myStoreKey(lang), []);
+  return list.length ? `<div class="card"><h3>📚 我的词库学习区（${list.length} 词）</h3>${vbBody(src, srcName, cfg)}</div>`
+    : '<div class="empty" style="padding:14px">词库还是空的，先到「我的词库」里添加或导入单词吧～</div>';
+}
+
+function vocabFrag(langCode, langShort, srcName, cfg) {
+  const sub = S[langShort + 'VocabTab'] || 'lib';
+  const tabs = [['lib', '📥 我的词库'], ['study', '📚 单词学习']];
+  const bar = `<div class="tabs">${tabs.map(t => `<div class="tab ${sub === t[0] ? 'active' : ''}" onclick="S['${langShort}VocabTab']='${t[0]}';render()">${t[1]}</div>`).join('')}</div>`;
+  const body = sub === 'study' ? vocabStudyBody(langCode, srcName, cfg) : vocabLibBody(langCode, srcName, cfg);
+  return bar + body;
 }

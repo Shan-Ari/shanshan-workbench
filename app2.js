@@ -132,7 +132,7 @@ function englishFrag() {
       ${e.speak.slice(-6).reverse().map(s => `<div class="list-item"><div class="li-main">${s.date} · ${s.mins}分钟${s.note ? ' · ' + esc(s.note) : ''}</div></div>`).join('') || '<div class="empty">暂无口语练习记录</div>'}
     </div>`;
   } else if (S.engTab === 'word') {
-    body = myVocabManage('en-US', 'en', 'MY_EN', MY_EN_CFG);
+    body = vocabFrag('en-US', 'en', 'MY_EN', MY_EN_CFG);
   } else {
     const ed = S.sentEdit ? e.sents.find(x => x.id === S.sentEdit) : null;
     body = `

@@ -51,7 +51,7 @@ const PAGES = [
 /* 页面临时状态 */
 const S = { engTab: 'speak', planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', cdEdit: null, repayEdit: null, repayPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all', ledTab: 'main', calTab: 'main',
   /* 灵感补给站 / 表达 / 外语 临时态 */
-  quoteIdx: 0, insTab: 'good', expTab: 'daily', forTab: 'en', krLevel: '初级', krSub: 'forty', jpSub: 'fifty', krSpokenTab: 'daily', jpLevel: '初级', jpSpokenTab: 'daily', chatLog: [] };
+  quoteIdx: 0, insTab: 'good', expTab: 'daily', forTab: 'en', krLevel: '初级', krSub: 'forty', jpSub: 'fifty', krSpokenTab: 'daily', jpLevel: '初级', jpSpokenTab: 'daily', krVocabTab: 'lib', jpVocabTab: 'lib', enVocabTab: 'lib', chatLog: [] };
 
 /* ============ 开屏页数据 ============ */
 const QUOTES = [
