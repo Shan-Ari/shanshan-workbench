@@ -1067,6 +1067,10 @@ function delMyWord(lang, i) {
   const arr = store.g(myStoreKey(lang), []);
   if (i >= 0 && i < arr.length) { arr.splice(i, 1); store.s(myStoreKey(lang), arr); render(); }
 }
+function clearMyVocab(lang) {
+  if (typeof confirm === 'function' && !confirm('确定清空本语言的全部手动词库吗？\n此操作不可恢复（已学进度不受影响）。')) return;
+  store.s(myStoreKey(lang), []); render();
+}
 function myVocabManage(lang, exField, srcName, cfg) {
   const storeKey = myStoreKey(lang);
   const list = store.g(storeKey, []);
@@ -1095,7 +1099,19 @@ function myVocabManage(lang, exField, srcName, cfg) {
     <div class="row mt"><button class="btn" onclick="importMyWords('${lang}')">导入到本语言词库 ➕</button><span id="mw_imp_msg" class="li-sub"></span></div>
   </div>
   ${packSection}
-  ${list.length ? `<div class="card"><h3>🗂 我的词列表（${list.length}）</h3>${list.map((w, i) => `<div class="list-item"><div class="li-main"><b>${esc(w.w)}</b> <span class="li-sub">${esc(w.ph || '')} · ${esc(w.mean)}</span></div><button class="btn sm warn" onclick="delMyWord('${lang}',${i})">删</button></div>`).join('')}</div>` : ''}
+  ${list.length ? (() => {
+    const groups = {};
+    list.forEach(w => { const k = w.topic || '📝 手动添加'; (groups[k] = groups[k] || []).push(w); });
+    const groupKeys = Object.keys(groups).sort();
+    const groupHtml = groupKeys.map(g => `<div class="folder-group"><div class="folder-group-h">${esc(g)}（${groups[g].length}）</div>${groups[g].map(w => { const i = list.indexOf(w); return `<div class="list-item"><div class="li-main"><b>${esc(w.w)}</b> <span class="li-sub">${esc(w.ph || '')} · ${esc(w.mean)}</span></div><button class="btn sm warn" onclick="delMyWord('${lang}',${i})">删</button></div>`; }).join('')}</div>`).join('');
+    return `<details class="folder">
+      <summary class="folder-sum"><span>🗂 我的词库（${list.length} 词）</span><span class="li-sub">点击展开 · 共 ${groupKeys.length} 组 <span class="chev">▾</span></span></summary>
+      <div class="folder-body">
+        <div class="row" style="justify-content:flex-end;margin:8px 0"><button class="btn sm warn" onclick="clearMyVocab('${lang}')">🗑 清空词库</button></div>
+        <div class="folder-list">${groupHtml}</div>
+      </div>
+    </details>`;
+  })() : ''}
   ${learn}
   `;
 }
