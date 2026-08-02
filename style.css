@@ -4,7 +4,7 @@
   --amber:#F9E79F; --amber-l:#FFF9D6; --amber-d:#C9B556;
   --green:#B8E0D2; --green-l:#E4F5EE; --green-d:#7ABAA6;
   --ink:#6B5A5E; --muted:#A59296; --line:#F3E8E8; --r:16px;
-  --sw:64px; --bh:64px; --ic-bg:#FFFDFB;
+  --sw:76px; --bh:64px; --ic-bg:#FFFDFB;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -56,30 +56,31 @@ h2,h3,h4{margin:0;}
 .sp-enter:active{transform:scale(.96);}
 /* ============ 底部固定快捷栏 ============ */
 #sidebar{
-  position:fixed;left:0;right:0;bottom:0;height:var(--bh);z-index:60;
-  background:rgba(255,255,255,.78);backdrop-filter:blur(12px);
-  border-top:1px solid rgba(255,255,255,.45);
-  display:flex;flex-direction:row;align-items:center;justify-content:space-around;
-  padding:6px 0 calc(6px + env(safe-area-inset-bottom));
-  box-shadow:0 -2px 18px rgba(107,90,94,.12);
+  position:fixed;top:0;left:0;bottom:0;width:var(--sw);z-index:60;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(12px);
+  border-right:1px solid rgba(255,255,255,.45);
+  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+  padding:12px 0;gap:5px;overflow-y:auto;overflow-x:hidden;
+  box-shadow:2px 0 18px rgba(107,90,94,.12);
 }
 .tb-item{
-  flex:1;max-width:80px;padding:6px 0;margin:0;border-radius:14px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;
+  width:100%;padding:9px 2px 7px;margin:0;border-radius:14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:var(--muted);font-size:9px;line-height:1.15;text-decoration:none;
 }
 .tb-item .ic{
-  width:40px;height:40px;display:flex;align-items:center;justify-content:center;
-  border-radius:18px;overflow:hidden;
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  border-radius:16px;overflow:hidden;flex:none;
   background:var(--ic-bg);
-  box-shadow:0 6px 18px rgba(248,195,205,.22);
+  box-shadow:0 4px 14px rgba(248,195,205,.20);
 }
-.tb-item .ic .emoji-ic{font-size:22px;}
-.tb-item .nm{line-height:1.1;text-align:center;}
+.tb-item .ic .emoji-ic{font-size:21px;}
+.tb-item .nm{text-align:center;white-space:nowrap;letter-spacing:.2px;}
 .tb-item.active{
   background:linear-gradient(135deg,var(--blue-l),var(--amber-l));
   color:var(--ink);font-weight:600;
 }
-.tb-item.active .ic{background:var(--ic-bg);box-shadow:0 6px 18px rgba(248,195,205,.22);}
+.tb-item.active .ic{background:rgba(255,255,255,.9);box-shadow:0 6px 18px rgba(248,195,205,.30);}
 .tb-item:active{transform:scale(.95);}
 /* ============ 首页模块网格 ============ */
 .mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -100,10 +101,46 @@ h2,h3,h4{margin:0;}
 .mod-card .ic .emoji-ic{font-size:26px;}
 .mod-card .nm{font-size:12px;color:var(--ink);font-weight:500;}
 .mod-card.last{background:linear-gradient(135deg,var(--blue-l),var(--amber-l));border-color:transparent;}
+/* ============ 首页顶部：问候 + 时钟 + 日期 ============ */
+.home-hero{
+  text-align:center;padding:26px 16px 22px;margin-bottom:14px;
+  border-radius:22px;
+  background:linear-gradient(150deg,rgba(255,255,255,.86),rgba(255,232,236,.72));
+  border:1px solid rgba(255,255,255,.55);
+  box-shadow:0 8px 24px rgba(107,90,94,.10);
+  backdrop-filter:blur(10px);
+}
+.hero-greet{font-size:15px;color:var(--ink);font-weight:600;letter-spacing:.5px;}
+.hero-clock{
+  font-size:52px;font-weight:800;line-height:1.15;margin:6px 0 2px;
+  color:var(--ink);letter-spacing:2px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum";
+  text-shadow:0 4px 14px rgba(248,195,205,.45);
+}
+.hero-date{font-size:15px;font-weight:600;color:var(--ink);}
+.hero-lunar{font-size:12px;color:var(--muted);margin-top:3px;}
+/* ============ 首页语录卡 ============ */
+.quote-card{text-align:center;}
+.quote-zh{font-size:17px;font-weight:600;line-height:1.75;color:var(--ink);}
+.quote-en{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.7;margin-top:6px;}
+/* ============ 每日喝水 ============ */
+.wt-total{text-align:center;margin:6px 0 8px;}
+.wt-total b{font-size:32px;font-weight:800;color:var(--blue-d);font-variant-numeric:tabular-nums;}
+.wt-total span{font-size:13px;color:var(--muted);}
+.wt-track{height:12px;border-radius:99px;background:var(--blue-l);overflow:hidden;}
+.wt-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--blue));transition:width .35s ease;}
+.wt-quick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+.wt-week{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:70px;margin:14px 0 4px;}
+.wt-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;}
+.wt-bar2{width:100%;max-width:26px;border-radius:6px 6px 3px 3px;background:var(--blue-m);}
+.wt-bar2.ok{background:var(--green);}
+.wt-col span{font-size:9px;color:var(--muted);white-space:nowrap;}
 /* ============ 主区 ============ */
-#main{margin-left:0;padding:16px 14px calc(80px + env(safe-area-inset-bottom));max-width:840px;margin-right:auto;margin-left:auto;}
+#main{padding:18px 16px;max-width:860px;margin-left:calc(var(--sw) + 22px);margin-right:auto;}
 .page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
 .page-sub{color:var(--muted);font-size:12px;margin-bottom:14px;}
+.subtabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px;}
+.subtabs .btn{flex:0 0 auto;}
 .card{
   background:rgba(255,255,255,.78);backdrop-filter:blur(10px);
   border-radius:var(--r);padding:14px;margin-bottom:12px;
@@ -265,12 +302,18 @@ details.rev-item summary::-webkit-details-marker{display:none;}
 
 /* 手机适配 */
 @media (max-width:480px){
-  :root{--bh:60px;}
-  #main{padding:14px 10px calc(74px + env(safe-area-inset-bottom));}
+  :root{--sw:64px;}
+  #main{padding:14px 10px;margin-left:calc(var(--sw) + 10px);}
   .stat .num{font-size:19px;}
   .stat-grid{gap:7px;}
   input,select{padding:9px 8px;}
   .cd-num{min-width:82px;}
   .cd-big{font-size:32px;}
   .mod-grid{grid-template-columns:repeat(2,1fr);}
+  .home-hero{padding:20px 10px 18px;}
+  .hero-clock{font-size:40px;letter-spacing:1px;}
+  .hero-date{font-size:13.5px;}
+  .quote-zh{font-size:15.5px;}
+  .wt-total b{font-size:27px;}
+  .wt-col span{font-size:8px;}
 }

@@ -1,18 +1,98 @@
 /* ============ 英语学习 ============ */
 const WORDS = [
-  ['abundant', '丰富的，充裕的'], ['accomplish', '完成，实现'], ['adapt', '适应，改编'], ['ambition', '雄心，抱负'], ['anticipate', '预期，期望'],
-  ['appreciate', '感激，欣赏'], ['approach', '方法；接近'], ['appropriate', '合适的'], ['assume', '假定，承担'], ['attitude', '态度'],
-  ['available', '可获得的'], ['balance', '平衡'], ['benefit', '好处，受益'], ['brilliant', '杰出的，明亮的'], ['capacity', '能力，容量'],
-  ['challenge', '挑战'], ['commitment', '承诺，投入'], ['confidence', '信心'], ['consistent', '一致的，持续的'], ['contribute', '贡献'],
-  ['curious', '好奇的'], ['dedicate', '奉献，致力于'], ['determine', '决定，决心'], ['efficient', '高效的'], ['embrace', '拥抱，欣然接受'],
-  ['emphasize', '强调'], ['enhance', '提高，增强'], ['essential', '必要的，本质的'], ['evaluate', '评估'], ['eventually', '最终'],
-  ['evidence', '证据'], ['expand', '扩大，展开'], ['explore', '探索'], ['flexible', '灵活的'], ['focus', '专注，焦点'],
-  ['frequent', '频繁的'], ['generate', '产生，生成'], ['genuine', '真诚的，真正的'], ['gradual', '逐渐的'], ['grateful', '感激的'],
-  ['habit', '习惯'], ['improve', '改进，提高'], ['inspire', '激励，鼓舞'], ['maintain', '保持，维护'], ['motivate', '激发动力'],
-  ['necessary', '必要的'], ['objective', '目标；客观的'], ['opportunity', '机会'], ['optimistic', '乐观的'], ['organize', '组织，整理'],
-  ['overcome', '克服'], ['patient', '耐心的；病人'], ['perspective', '视角，观点'], ['positive', '积极的'], ['potential', '潜力'],
-  ['priority', '优先事项'], ['progress', '进步，进展'], ['pursue', '追求'], ['reflect', '反思，反映'], ['strategy', '策略']
+  { w: 'abundant', ph: '/əˈbʌndənt/', mean: '丰富的，充裕的', ex: [{ en: 'The region is abundant in natural resources.', zh: '这个地区自然资源丰富。' }, { en: 'She has abundant energy for the work.', zh: '她对这项工作精力充沛。' }] },
+  { w: 'accomplish', ph: '/əˈkɑːmplɪʃ/', mean: '完成，实现', ex: [{ en: 'We accomplished the goal ahead of time.', zh: '我们提前完成了目标。' }, { en: 'He felt proud to accomplish it.', zh: '他因完成它而感到自豪。' }] },
+  { w: 'adapt', ph: '/əˈdæpt/', mean: '适应，改编', ex: [{ en: 'It takes time to adapt to a new city.', zh: '适应新城市需要时间。' }, { en: 'We should adapt our plan to the change.', zh: '我们应让计划适应变化。' }] },
+  { w: 'ambition', ph: '/æmˈbɪʃn/', mean: '雄心，抱负', ex: [{ en: 'Her ambition is to start her own brand.', zh: '她的抱负是创立自己的品牌。' }, { en: 'Ambition drives people forward.', zh: '抱负推动人们向前。' }] },
+  { w: 'anticipate', ph: '/ænˈtɪsɪpeɪt/', mean: '预期，期望', ex: [{ en: 'We anticipate a busy season ahead.', zh: '我们预计将迎来繁忙季。' }, { en: 'I anticipate his reply by tomorrow.', zh: '我预期明天前收到他的回复。' }] },
+  { w: 'appreciate', ph: '/əˈpriːʃieɪt/', mean: '感激，欣赏', ex: [{ en: 'I really appreciate your help.', zh: '我真心感激你的帮助。' }, { en: 'She appreciates good music.', zh: '她欣赏好音乐。' }] },
+  { w: 'approach', ph: '/əˈproʊtʃ/', mean: '方法；接近', ex: [{ en: 'We need a new approach to this.', zh: '我们需要个新方法来处理。' }, { en: 'He approached the problem calmly.', zh: '他冷静地接近这个问题。' }] },
+  { w: 'appropriate', ph: '/əˈproʊpriət/', mean: '合适的', ex: [{ en: 'Casual clothes are appropriate here.', zh: '休闲装在这里很合适。' }, { en: 'Pick an appropriate time to talk.', zh: '选个合适的时间谈。' }] },
+  { w: 'assume', ph: '/əˈsuːm/', mean: '假定，承担', ex: [{ en: 'Do not assume it will be easy.', zh: '别假定它会很容易。' }, { en: 'He assumed the new role last month.', zh: '他上月承担了新角色。' }] },
+  { w: 'attitude', ph: '/ˈætɪtuːd/', mean: '态度', ex: [{ en: 'A positive attitude helps a lot.', zh: '积极的态度很有帮助。' }, { en: 'Her attitude impressed the team.', zh: '她的态度打动了团队。' }] },
+  { w: 'available', ph: '/əˈveɪləbl/', mean: '可获得的', ex: [{ en: 'Is the manager available now?', zh: '经理现在有空吗？' }, { en: 'This service is available online.', zh: '这项服务在线可用。' }] },
+  { w: 'balance', ph: '/ˈbæləns/', mean: '平衡', ex: [{ en: 'Try to balance work and life.', zh: '试着平衡工作与生活。' }, { en: 'The budget is finally in balance.', zh: '预算终于平衡了。' }] },
+  { w: 'benefit', ph: '/ˈbenɪfɪt/', mean: '好处，受益', ex: [{ en: 'Both sides will benefit from it.', zh: '双方都将从中受益。' }, { en: 'The benefit is obvious.', zh: '好处是明显的。' }] },
+  { w: 'brilliant', ph: '/ˈbrɪliənt/', mean: '杰出的，明亮的', ex: [{ en: 'She gave a brilliant speech.', zh: '她做了场杰出的演讲。' }, { en: 'The sky was brilliant blue.', zh: '天空是明亮的蓝。' }] },
+  { w: 'capacity', ph: '/kəˈpæsəti/', mean: '能力，容量', ex: [{ en: 'The hall has a capacity of 500.', zh: '大厅容量为 500 人。' }, { en: 'He has the capacity to lead.', zh: '他有领导能力。' }] },
+  { w: 'challenge', ph: '/ˈtʃælɪndʒ/', mean: '挑战', ex: [{ en: 'This is a real challenge.', zh: '这是个真正的挑战。' }, { en: 'She welcomed the challenge.', zh: '她欣然接受挑战。' }] },
+  { w: 'commitment', ph: '/kəˈmɪtmənt/', mean: '承诺，投入', ex: [{ en: 'His commitment moved everyone.', zh: '他的投入打动了所有人。' }, { en: 'Keep your commitment.', zh: '信守你的承诺。' }] },
+  { w: 'confidence', ph: '/ˈkɑːnfɪdəns/', mean: '信心', ex: [{ en: 'Practice builds confidence.', zh: '练习建立信心。' }, { en: 'She spoke with confidence.', zh: '她自信地发言。' }] },
+  { w: 'consistent', ph: '/kənˈsɪstənt/', mean: '一致的，持续的', ex: [{ en: 'Be consistent with your efforts.', zh: '保持努力的持续。' }, { en: 'His story is consistent.', zh: '他的说法前后一致。' }] },
+  { w: 'contribute', ph: '/kənˈtrɪbjuːt/', mean: '贡献', ex: [{ en: 'Everyone contributed to the project.', zh: '每个人都为项目做了贡献。' }, { en: 'She contributed a new idea.', zh: '她贡献了一个新点子。' }] },
+  { w: 'curious', ph: '/ˈkjʊriəs/', mean: '好奇的', ex: [{ en: 'Kids are naturally curious.', zh: '孩子天生好奇。' }, { en: 'I am curious about your story.', zh: '我对你的故事很好奇。' }] },
+  { w: 'dedicate', ph: '/ˈdedɪkeɪt/', mean: '奉献，致力于', ex: [{ en: 'He dedicated his life to art.', zh: '他毕生奉献于艺术。' }, { en: 'We dedicate this to you.', zh: '我们把这个献给你。' }] },
+  { w: 'determine', ph: '/dɪˈtɜːrmɪn/', mean: '决定，决心', ex: [{ en: 'We determined to finish it.', zh: '我们决心完成它。' }, { en: 'The result determined our plan.', zh: '结果决定了我们的计划。' }] },
+  { w: 'efficient', ph: '/ɪˈfɪʃnt/', mean: '高效的', ex: [{ en: 'The new tool is efficient.', zh: '新工具很高效。' }, { en: 'Work smarter, be efficient.', zh: '更聪明地工作，提高效率。' }] },
+  { w: 'embrace', ph: '/ɪmˈbreɪs/', mean: '拥抱，欣然接受', ex: [{ en: 'Embrace the change bravely.', zh: '勇敢拥抱变化。' }, { en: 'They embraced the new idea.', zh: '他们欣然接受了新想法。' }] },
+  { w: 'emphasize', ph: '/ˈemfəsaɪz/', mean: '强调', ex: [{ en: 'He emphasized the key point.', zh: '他强调了关键点。' }, { en: 'I want to emphasize safety.', zh: '我想强调安全。' }] },
+  { w: 'enhance', ph: '/ɪnˈhæns/', mean: '提高，增强', ex: [{ en: 'This will enhance your skills.', zh: '这会增强你的技能。' }, { en: 'Music enhances the mood.', zh: '音乐提升氛围。' }] },
+  { w: 'essential', ph: '/ɪˈsenʃl/', mean: '必要的，本质的', ex: [{ en: 'Water is essential to life.', zh: '水对生命必不可少。' }, { en: 'Trust is essential.', zh: '信任是必要的。' }] },
+  { w: 'evaluate', ph: '/ɪˈvæljueɪt/', mean: '评估', ex: [{ en: 'We evaluate the results weekly.', zh: '我们每周评估结果。' }, { en: 'It is hard to evaluate.', zh: '这很难评估。' }] },
+  { w: 'eventually', ph: '/ɪˈventʃuəli/', mean: '最终', ex: [{ en: 'Eventually we made it.', zh: '最终我们做到了。' }, { en: 'It will eventually work out.', zh: '最终会好起来的。' }] },
+  { w: 'evidence', ph: '/ˈevɪdəns/', mean: '证据', ex: [{ en: 'There is no clear evidence.', zh: '没有明确证据。' }, { en: 'Show me the evidence.', zh: '给我看证据。' }] },
+  { w: 'expand', ph: '/ɪkˈspænd/', mean: '扩大，展开', ex: [{ en: 'We plan to expand the team.', zh: '我们计划扩大团队。' }, { en: 'The business expanded fast.', zh: '业务迅速扩张。' }] },
+  { w: 'explore', ph: '/ɪkˈsplɔːr/', mean: '探索', ex: [{ en: 'Let us explore the options.', zh: '我们来探索各种选项。' }, { en: 'She loves to explore cities.', zh: '她喜欢探索城市。' }] },
+  { w: 'flexible', ph: '/ˈfleksəbl/', mean: '灵活的', ex: [{ en: 'We have a flexible schedule.', zh: '我们的日程很灵活。' }, { en: 'Be flexible with the plan.', zh: '对计划保持灵活。' }] },
+  { w: 'focus', ph: '/ˈfoʊkəs/', mean: '专注，焦点', ex: [{ en: 'Focus on what matters.', zh: '专注于重要的事。' }, { en: 'The focus is on quality.', zh: '焦点在质量上。' }] },
+  { w: 'frequent', ph: '/ˈfriːkwənt/', mean: '频繁的', ex: [{ en: 'He is a frequent visitor.', zh: '他是常客。' }, { en: 'Frequent breaks help.', zh: '频繁休息有帮助。' }] },
+  { w: 'generate', ph: '/ˈdʒenəreɪt/', mean: '产生，生成', ex: [{ en: 'The idea generated discussion.', zh: '这个想法引发了讨论。' }, { en: 'It generates income.', zh: '它产生收入。' }] },
+  { w: 'genuine', ph: '/ˈdʒenjuɪn/', mean: '真诚的，真正的', ex: [{ en: 'She gave a genuine smile.', zh: '她给了真诚的微笑。' }, { en: 'This is a genuine product.', zh: '这是真品。' }] },
+  { w: 'gradual', ph: '/ˈɡrædʒuəl/', mean: '逐渐的', ex: [{ en: 'There was a gradual change.', zh: '有一个逐渐的变化。' }, { en: 'Progress is gradual.', zh: '进步是渐进的。' }] },
+  { w: 'grateful', ph: '/ˈɡreɪtfl/', mean: '感激的', ex: [{ en: 'I am grateful for your support.', zh: '我感激你的支持。' }, { en: 'Be grateful for small things.', zh: '为小事感恩。' }] },
+  { w: 'improve', ph: '/ɪmˈpruːv/', mean: '改进，提高', ex: [{ en: 'We must improve the process.', zh: '我们必须改进流程。' }, { en: 'Her English improved fast.', zh: '她英语进步很快。' }] },
+  { w: 'inspire', ph: '/ɪnˈspaɪər/', mean: '激励，鼓舞', ex: [{ en: 'The story inspired many.', zh: '这个故事鼓舞了很多人。' }, { en: 'She inspires her team.', zh: '她激励着团队。' }] },
+  { w: 'maintain', ph: '/meɪnˈteɪn/', mean: '保持，维护', ex: [{ en: 'Maintain a healthy habit.', zh: '保持健康的习惯。' }, { en: 'We maintain the system.', zh: '我们维护系统。' }] },
+  { w: 'motivate', ph: '/ˈmoʊtɪveɪt/', mean: '激发动力', ex: [{ en: 'Good goals motivate us.', zh: '好目标激励我们。' }, { en: 'The coach motivated the team.', zh: '教练激励了团队。' }] },
+  { w: 'necessary', ph: '/ˈnesəseri/', mean: '必要的', ex: [{ en: 'Sleep is necessary for health.', zh: '睡眠对健康必要。' }, { en: 'Take the necessary steps.', zh: '采取必要的步骤。' }] },
+  { w: 'objective', ph: '/əbˈdʒektɪv/', mean: '目标；客观的', ex: [{ en: 'Our objective is clear.', zh: '我们的目标清晰。' }, { en: 'Stay objective in review.', zh: '复盘时保持客观。' }] },
+  { w: 'opportunity', ph: '/ˌɑːpərˈtuːnəti/', mean: '机会', ex: [{ en: 'This is a great opportunity.', zh: '这是个好机会。' }, { en: 'Seize the opportunity.', zh: '抓住机会。' }] },
+  { w: 'optimistic', ph: '/ˌɑːptɪˈmɪstɪk/', mean: '乐观的', ex: [{ en: 'He is optimistic about the future.', zh: '他对未来乐观。' }, { en: 'Stay optimistic.', zh: '保持乐观。' }] },
+  { w: 'organize', ph: '/ˈɔːrɡənaɪz/', mean: '组织，整理', ex: [{ en: 'Let us organize the event.', zh: '我们来组织活动。' }, { en: 'She organized her desk.', zh: '她整理了书桌。' }] },
+  { w: 'overcome', ph: '/ˌoʊvərˈkʌm/', mean: '克服', ex: [{ en: 'We overcame the difficulty.', zh: '我们克服了困难。' }, { en: 'Overcome your fear.', zh: '克服你的恐惧。' }] },
+  { w: 'patient', ph: '/ˈpeɪʃnt/', mean: '耐心的；病人', ex: [{ en: 'Be patient with yourself.', zh: '对自己耐心点。' }, { en: 'The patient is recovering.', zh: '病人正在康复。' }] },
+  { w: 'perspective', ph: '/pərˈspektɪv/', mean: '视角，观点', ex: [{ en: 'Try a new perspective.', zh: '换个新视角。' }, { en: 'From my perspective, it works.', zh: '在我看来这行得通。' }] },
+  { w: 'positive', ph: '/ˈpɑːzətɪv/', mean: '积极的', ex: [{ en: 'Keep a positive mind.', zh: '保持积极心态。' }, { en: 'The feedback was positive.', zh: '反馈是积极的。' }] },
+  { w: 'potential', ph: '/pəˈtenʃl/', mean: '潜力', ex: [{ en: 'He has great potential.', zh: '他潜力很大。' }, { en: 'Realize your potential.', zh: '发挥你的潜力。' }] },
+  { w: 'priority', ph: '/praɪˈɔːrəti/', mean: '优先事项', ex: [{ en: 'Health is my priority.', zh: '健康是我的优先项。' }, { en: 'Set the right priority.', zh: '设好正确的优先级。' }] },
+  { w: 'progress', ph: '/ˈprɑːɡres/', mean: '进步，进展', ex: [{ en: 'We made real progress.', zh: '我们取得了实在进展。' }, { en: 'Track your progress.', zh: '追踪你的进展。' }] },
+  { w: 'pursue', ph: '/pərˈsuː/', mean: '追求', ex: [{ en: 'Pursue your dream.', zh: '追求你的梦想。' }, { en: 'He pursued a career in art.', zh: '他追求艺术事业。' }] },
+  { w: 'reflect', ph: '/rɪˈflekt/', mean: '反思，反映', ex: [{ en: 'Reflect on your day.', zh: '反思你的一天。' }, { en: 'The data reflects a trend.', zh: '数据反映了一个趋势。' }] },
+  { w: 'strategy', ph: '/ˈstrætədʒi/', mean: '策略', ex: [{ en: 'We need a clear strategy.', zh: '我们需要清晰策略。' }, { en: 'His strategy worked.', zh: '他的策略奏效了。' }] }
 ];
+/* 艾宾浩斯复习间隔（天）：学完当天复习后逐级拉长 */
+const EBB_GAPS = [0, 1, 2, 4, 7, 15, 30];
+function wordState() { return store.g('wordRec', {}); }
+function learnedSet() { return store.g('wordLearned', []); }
+function ckArr(key) { const a = store.g(key, []); if (!a.includes(today())) { a.push(today()); store.s(key, a); } }
+function learnTodayWords() {
+  const L = learnedSet();
+  let pick = WORDS.filter(w => !L.includes(w.w));
+  if (pick.length < 10) pick = pick.concat(WORDS.filter(w => L.includes(w.w)));
+  return pick.slice(0, 10);
+}
+function reviewDue() {
+  const rec = wordState(), t = today();
+  return WORDS.filter(w => rec[w.w] && rec[w.w].level < 6 && rec[w.w].next <= t);
+}
+function speakWord(i) { const w = WORDS[i]; if (w) speak(w.w, 'en-US'); }
+function speakEx(i, ei) { const w = WORDS[i]; if (w && w.ex[ei]) speak(w.ex[ei].en, 'en-US'); }
+function finishTodayNew() {
+  const L = learnedSet(), rec = wordState();
+  learnTodayWords().forEach(w => {
+    if (!L.includes(w.w)) L.push(w.w);
+    if (!rec[w.w]) rec[w.w] = { first: today(), level: 0, next: today(), last: today() };
+  });
+  store.s('wordLearned', L); store.s('wordRec', rec); ckArr('wordStudyCk'); render();
+}
+function reviewDone(w) {
+  const rec = wordState(); const o = rec[w]; if (!o) return;
+  o.level = Math.min(6, o.level + 1);
+  const add = EBB_GAPS[Math.min(o.level, EBB_GAPS.length - 1)];
+  const d = new Date(); d.setDate(d.getDate() + add);
+  o.next = fmt(d); o.last = today();
+  store.s('wordRec', rec); ckArr('wordStudyCk'); render();
+}
 const SPEAK_SETS = [
   ['What do you usually do after work?', 'I like to unwind by reading or working out.', 'It has been a long day, but totally worth it.', 'Let me walk you through my daily routine.'],
   ['Could you give me a hand with this?', 'No worries, take your time.', 'That sounds like a great plan to me.', 'I will keep you posted on the progress.'],
@@ -23,45 +103,93 @@ const SPEAK_SETS = [
   ['May I ask a quick question?', 'That makes perfect sense now.', 'Thanks for pointing that out.', 'Practice makes perfect, keep going!']
 ];
 function engData() { return store.g('eng', { speak: [], newWords: [], sents: [] }); }
-function render_english() {
+function englishFrag() {
   const e = engData();
-  const speakCk = store.g('speakCk', []), wordCk = store.g('wordCk', []), revCk = store.g('revCk', []);
-  const start = (dayIdx * 20) % WORDS.length;
-  const todayWords = Array.from({ length: 20 }, (_, i) => WORDS[(start + i) % WORDS.length]);
+  const speakCk = store.g('speakCk', []);
   const totalMins = e.speak.reduce((a, b) => a + (+b.mins || 0), 0);
-  const tabs = [['speak', '🗣 口语练习'], ['word', '📖 单词学习'], ['sent', '✍️ 语句积累']];
+  const tabs = [['speak', '🗣 口语练习'], ['word', '📖 单词学习'], ['sent', '✍️ 语句积累'], ['mine', '📥 我的词库']];
   let body = '';
   if (S.engTab === 'speak') {
     const mats = SPEAK_SETS[dayIdx % SPEAK_SETS.length];
     body = `
     <div class="card"><h3>今日口语素材（跟读练习）</h3>
-      ${mats.map((m, i) => `<div class="list-item"><div class="li-main">${i + 1}. ${esc(m)}</div></div>`).join('')}
+      ${mats.map((m, i) => `<div class="list-item"><div class="li-main"><b>${i + 1}.</b> ${esc(m)}</div>
+        <div class="row mt" style="justify-content:flex-start;gap:6px">
+          <button class="btn sm" onclick="speakSpeak(${i})">🔊 发音</button>
+          <span id="spk_${i}"></span>
+          <button class="btn sm ghost" onclick="recToggle('spk_${i}','en-US')">🎙 跟读</button>
+        </div></div>`).join('')}
       <div class="row mt">
         <input type="number" id="spkMin" placeholder="练习时长(分)">
         <input class="grow" id="spkNote" placeholder="练习内容备注(选填)">
         <button class="btn" onclick="addSpeak()">口语打卡 ➕</button>
       </div>
     </div>
-    <div class="card"><h3>打卡记录</h3>
+    <div class="card"><h3>学习记录（历史进度）</h3>
       <div class="stat-grid"><div class="stat"><div class="num">${streakOf(speakCk)}</div><div class="lb">连续打卡(天)</div></div>
       <div class="stat"><div class="num pk">${speakCk.length}</div><div class="lb">累计打卡(天)</div></div>
       <div class="stat"><div class="num">${totalMins}</div><div class="lb">累计时长(分)</div></div></div>
       ${e.speak.slice(-6).reverse().map(s => `<div class="list-item"><div class="li-main">${s.date} · ${s.mins}分钟${s.note ? ' · ' + esc(s.note) : ''}</div></div>`).join('') || '<div class="empty">暂无口语练习记录</div>'}
     </div>`;
   } else if (S.engTab === 'word') {
+    const L = learnedSet(), rec = wordState();
+    const todayNew = learnTodayWords();
+    const due = reviewDue();
+    const ck = store.g('wordStudyCk', []);
+    const lvCount = [0, 1, 2, 3, 4, 5, 6].map(l => WORDS.filter(w => rec[w.w] && rec[w.w].level === l).length);
+    const newCard = (w) => {
+      const gi = WORDS.indexOf(w);
+      return `<div class="card" style="padding:12px">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div><b style="font-size:16px">${esc(w.w)}</b> <span class="li-sub">${esc(w.ph)}</span></div>
+          <div class="row" style="gap:6px">
+            <button class="btn sm" onclick="speakWord(${gi})">🔊</button>
+            <span id="wrd_${gi}"></span>
+            <button class="btn sm ghost" onclick="recToggle('wrd_${gi}','en-US','${w.w}')">🎙</button>
+            <button class="btn sm ghost" onclick="toggleWrong('${w.w}')" title="加入错词本">🔴</button>
+          </div>
+        </div>
+        <div class="li-sub" style="margin-top:4px">${esc(w.mean)}</div>
+        ${w.ex.map((x, ei) => `<div class="list-item" style="border:none;padding:6px 0">
+          <div class="li-main" style="display:flex;gap:6px;align-items:flex-start"><span style="flex:1">${esc(x.en)}<div class="li-sub">${esc(x.zh)}</div></span>
+          <button class="btn sm" onclick="speakEx(${gi},${ei})">🔊</button></div>
+          <div class="row mt" style="justify-content:flex-start"><span id="wex_${gi}_${ei}"></span><button class="btn sm ghost" onclick="recToggle('wex_${gi}_${ei}','en-US')">🎙 跟读</button></div>
+        </div>`).join('')}
+      </div>`;
+    };
     body = `
-    <div class="card"><h3>今日推送 20 词 ${wordCk.includes(today()) ? '<span class="tag g">今日已打卡</span>' : ''}</h3>
-      ${todayWords.map(w => `<div class="list-item"><div class="li-main"><b>${w[0]}</b></div><div class="li-sub" style="margin-top:0">${w[1]}</div></div>`).join('')}
-      <div class="row mt">
-        <button class="btn" onclick="ckToday('wordCk')" ${wordCk.includes(today()) ? 'disabled' : ''}>今日单词打卡 ✔</button>
-        <button class="btn pink" onclick="ckToday('revCk')" ${revCk.includes(today()) ? 'disabled' : ''}>复习打卡 🔁</button>
-      </div>
-      <div class="li-sub" style="margin-top:8px">背词打卡 ${wordCk.length} 天 · 连续 ${streakOf(wordCk)} 天 · 复习打卡 ${revCk.length} 天</div>
+    <div class="card"><h3>📚 今日新词（${todayNew.length} 个）</h3>
+      <div class="li-sub" style="margin-bottom:8px">学完点下方按钮，自动加入艾宾浩斯复习计划</div>
+      ${todayNew.map(w => newCard(w)).join('')}
+      <button class="btn mt" onclick="finishTodayNew()">✅ 我已学完今日新词</button>
     </div>
-    <div class="card"><h3>生词本</h3>
+    <div class="card"><h3>🔁 待复习（${due.length} 个）</h3>
+      ${due.length ? due.map(w => { const gi = WORDS.indexOf(w); return `<div class="list-item"><div class="li-main" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${esc(w.w)}</b><span class="li-sub">${esc(w.ph)} · ${esc(w.mean)}</span>
+        <button class="btn sm" onclick="speakWord(${gi})">🔊</button><span id="rv_${gi}"></span><button class="btn sm ghost" onclick="recToggle('rv_${gi}','en-US','${w.w}')">🎙</button>
+        <button class="btn sm ghost" onclick="toggleWrong('${esc(w.w)}')" title="加入错词本">🔴</button>
+        <button class="btn sm pink" onclick="reviewDone('${esc(w.w)}')">记住了 🔁</button></div></div>`; }).join('') : '<div class="empty">今日没有待复习的词，太棒了 🎉</div>'}
+    </div>
+    ${(() => { const wrong = wrongSet(); return `<div class="card"><h3>🔴 错词本 / 生词本（${wrong.length}）</h3>
+      <div class="li-sub" style="margin-bottom:8px">跟读识别不符、或点 🔴 加入的词会在这里，重点复习。</div>
+      ${wrong.length ? wrong.map(w => { const gi = WORDS.findIndex(x => x.w === w); const wd = WORDS[gi]; return `<div class="list-item"><div class="li-main" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${esc(w)}</b>${wd ? ` <span class="li-sub">${esc(wd.ph)} · ${esc(wd.mean)}</span>` : ''}
+        <button class="btn sm" onclick="speak('${esc(w)}','en-US')">🔊</button><span id="wng_${gi}"></span><button class="btn sm ghost" onclick="recToggle('wng_${gi}','en-US','${esc(w)}')">🎙</button>
+        <button class="btn sm pink" onclick="toggleWrong('${esc(w)}')">已掌握 🔴</button></div></div>`; }).join('') + `<button class="btn mt ghost" onclick="clearWrong()">全部标记为已掌握</button>` : '<div class="empty">还没有错词，继续保持 💪</div>'}
+    </div>`; })()}
+    <div class="card"><h3>📈 学习进度（历史）</h3>
+      <div class="stat-grid">
+        <div class="stat"><div class="num">${L.length}</div><div class="lb">已学词数</div></div>
+        <div class="stat"><div class="num pk">${streakOf(ck)}</div><div class="lb">连续学习(天)</div></div>
+        <div class="stat"><div class="num">${ck.length}</div><div class="lb">累计学习(天)</div></div>
+      </div>
+      <div class="li-sub" style="margin-top:6px">熟练度分布（L0 生疏 → L6 掌握）：${lvCount.join(' / ')}</div>
+      <div class="li-sub">艾宾浩斯间隔：当天 → 1 → 2 → 4 → 7 → 15 → 30 天逐级复习</div>
+    </div>
+    <div class="card"><h3>📝 生词本</h3>
       <div class="row"><input id="nwWord" placeholder="生词"><input class="grow" id="nwMean" placeholder="释义"><button class="btn" onclick="addNewWord()">记录 ➕</button></div>
       ${e.newWords.slice().reverse().map(w => `<div class="list-item"><div class="li-main"><b>${esc(w.word)}</b> — ${esc(w.mean)}</div><button class="btn sm warn" onclick="delEng('newWords','${w.id}')">删</button></div>`).join('') || '<div class="empty">还没有生词记录</div>'}
     </div>`;
+  } else if (S.engTab === 'mine') {
+    body = myVocabManage('en-US', 'en', 'MY_EN', MY_EN_CFG);
   } else {
     const ed = S.sentEdit ? e.sents.find(x => x.id === S.sentEdit) : null;
     body = `
@@ -77,11 +205,17 @@ function render_english() {
     </div>`;
   }
   return `
-  <div class="page-title">🔤 英语学习</div>
-  <div class="page-sub">口语 · 单词 · 语句，每天进步一点点</div>
   <div class="tabs">${tabs.map(t => `<div class="tab ${S.engTab === t[0] ? 'active' : ''}" onclick="S.engTab='${t[0]}';S.sentEdit=null;render()">${t[1]}</div>`).join('')}</div>
   ${body}`;
 }
+/* 英语学习已并入「外语学习」子分类，保留独立入口以兼容旧链接 */
+function render_english() {
+  return `
+  <div class="page-title">🔤 英语学习</div>
+  <div class="page-sub">口语 · 单词 · 语句，每天进步一点点</div>
+  ${englishFrag()}`;
+}
+function speakSpeak(i) { const m = SPEAK_SETS[dayIdx % SPEAK_SETS.length][i]; if (m) speak(m, 'en-US'); }
 function addSpeak() {
   const m = +$('#spkMin').value || 0; if (!m) return;
   const e = engData(); e.speak.push({ id: uid(), date: today(), mins: m, note: $('#spkNote').value.trim() }); store.s('eng', e);
@@ -181,65 +315,3 @@ function addClip(k) {
   store.s('clip', c); render();
 }
 function delClip(k, id) { const c = clipData(); c[k] = c[k].filter(x => x.id !== id); store.s('clip', c); render(); }
-
-/* ============ 读书计划 ============ */
-function render_book() {
-  const books = store.g('books', []);
-  const goal = store.g('bookGoal', 12);
-  const ck = store.g('bookCk', []);
-  const doneBooks = books.filter(b => b.done);
-  const reading = books.filter(b => !b.done && b.cur > 0);
-  const unread = books.filter(b => !b.done && (!b.cur || b.cur === 0));
-  const card = b => {
-    const pct = b.total > 0 ? Math.min(100, Math.round(b.cur / b.total * 100)) : 0;
-    return `<div class="card">
-      <div class="row" style="justify-content:space-between"><b>《${esc(b.title)}》</b><span class="li-sub">${esc(b.author || '')}</span></div>
-      <div class="bar"><i style="width:${b.done ? 100 : pct}%"></i></div>
-      <div class="li-sub">进度 ${b.done ? b.total || b.cur : b.cur}/${b.total || '?'} 页 · ${b.done ? '已读完 🎉' : pct + '%'} · 评分 ${'★'.repeat(b.rating || 0)}${'☆'.repeat(5 - (b.rating || 0))}</div>
-      <div class="row mt">
-        <input type="number" id="bkCur_${b.id}" placeholder="当前页" value="${b.cur || ''}" style="width:80px">
-        <button class="btn sm" onclick="updBook('${b.id}')">更新进度</button>
-        <select id="bkRate_${b.id}" onchange="rateBook('${b.id}',this.value)">
-          ${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}" ${b.rating === n ? 'selected' : ''}>${n ? '★'.repeat(n) : '评分'}</option>`).join('')}
-        </select>
-        ${b.done ? '' : `<button class="btn sm pink" onclick="finishBook('${b.id}')">读完归档 📥</button>`}
-        <button class="btn sm warn" onclick="delBook('${b.id}')">删</button>
-      </div>
-      <textarea id="bkNote_${b.id}" rows="2" placeholder="读书笔记 / 感悟…" style="margin-top:8px">${esc(b.note || '')}</textarea>
-      <div class="row mt"><button class="btn sm ghost" onclick="noteBook('${b.id}')">保存笔记 ✔</button></div>
-    </div>`;
-  };
-  return `
-  <div class="page-title">📚 读书计划</div>
-  <div class="page-sub">书单 · 进度 · 笔记 · 归档</div>
-  <div class="card">
-    <div class="stat-grid">
-      <div class="stat"><div class="num">${doneBooks.length}/${goal}</div><div class="lb">年度目标(本)</div></div>
-      <div class="stat"><div class="num pk">${streakOf(ck)}</div><div class="lb">连续读书打卡</div></div>
-      <div class="stat"><div class="num">${ck.length}</div><div class="lb">累计打卡(天)</div></div>
-    </div>
-    <div class="row mt">
-      <button class="btn pink" onclick="ckToday('bookCk')" ${ck.includes(today()) ? 'disabled' : ''}>${ck.includes(today()) ? '今日已打卡 ✔' : '每日读书打卡 ➕'}</button>
-      <input type="number" id="bkGoal" placeholder="年度目标" value="${goal}" style="width:90px">
-      <button class="btn sm ghost" onclick="store.s('bookGoal',+document.querySelector('#bkGoal').value||12);render()">设目标</button>
-    </div>
-  </div>
-  <div class="card"><h3>➕ 添加书籍</h3>
-    <div class="row"><input class="grow" id="bkTitle" placeholder="书名"><input id="bkAuthor" placeholder="作者(选填)" style="width:110px"></div>
-    <div class="row mt"><input type="number" id="bkTotal" placeholder="总页数"><button class="btn" onclick="addBook()">加入书单 ➕</button></div>
-  </div>
-  <h3 style="margin:14px 0 8px">📖 在读（${reading.length}）</h3>${reading.map(card).join('') || '<div class="card"><div class="empty">暂无在读书籍</div></div>'}
-  <h3 style="margin:14px 0 8px">🕐 未读清单（${unread.length}）</h3>${unread.map(card).join('') || '<div class="card"><div class="empty">未读清单是空的</div></div>'}
-  <h3 style="margin:14px 0 8px">✅ 已读归档（${doneBooks.length}）</h3>${doneBooks.map(card).join('') || '<div class="card"><div class="empty">还没有读完的书</div></div>'}`;
-}
-function addBook() {
-  const t = $('#bkTitle').value.trim(); if (!t) return;
-  const books = store.g('books', []);
-  books.push({ id: uid(), title: t, author: $('#bkAuthor').value.trim(), total: +$('#bkTotal').value || 0, cur: 0, rating: 0, note: '', done: false });
-  store.s('books', books); render();
-}
-function updBook(id) { const bs = store.g('books', []); const b = bs.find(x => x.id === id); if (b) { b.cur = +$('#bkCur_' + id).value || 0; if (b.total && b.cur >= b.total) b.done = true; } store.s('books', bs); render(); }
-function rateBook(id, v) { const bs = store.g('books', []); const b = bs.find(x => x.id === id); if (b) b.rating = +v; store.s('books', bs); render(); }
-function noteBook(id) { const bs = store.g('books', []); const b = bs.find(x => x.id === id); if (b) b.note = $('#bkNote_' + id).value; store.s('books', bs); render(); }
-function finishBook(id) { const bs = store.g('books', []); const b = bs.find(x => x.id === id); if (b) { b.done = true; if (b.total) b.cur = b.total; } store.s('books', bs); render(); }
-function delBook(id) { if (!confirm('删除这本书？')) return; store.s('books', store.g('books', []).filter(x => x.id !== id)); render(); }

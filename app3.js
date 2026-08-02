@@ -11,7 +11,7 @@ const POEMS = [
   { id: 'p9', t: '秋词', a: '唐 · 刘禹锡', lines: ['自古逢秋悲寂寥，我言秋日胜春朝。', '晴空一鹤排云上，便引诗情到碧霄。'], yi: '自古以来每逢秋天都会感到悲凉寂寥，我却认为秋天要胜过春天。万里晴空中一只鹤凌云而飞起，就引发我的诗兴到了蓝天之上。', zhu: '寂寥：冷清萧条。春朝：春天。碧霄：蓝天。', xi: '一反悲秋传统，以昂扬乐观的态度赞美秋天，格调豪迈高远，催人奋发。' },
   { id: 'p10', t: '游子吟', a: '唐 · 孟郊', lines: ['慈母手中线，游子身上衣。', '临行密密缝，意恐迟迟归。', '谁言寸草心，报得三春晖。'], yi: '慈祥的母亲手里把着针线，为即将远行的孩子赶制新衣。临行前一针针密密地缝着，是担心孩子回来得晚衣服破损。谁能说像小草那样微弱的孝心，能报答得了像春晖普泽的慈母恩情呢？', zhu: '寸草：小草，比喻子女。三春晖：春天的阳光，比喻母爱。', xi: '通过缝衣的细节写尽母爱深笃，末句以反问作结，情真意切，千百年来广为传诵。' }
 ];
-function render_poem() {
+function poemFrag() {
   const fav = store.g('poemFav', []), rec = store.g('poemRec', []);
   const daily = POEMS[dayIdx % POEMS.length];
   const view = S.poemView ? POEMS.find(p => p.id === S.poemView) : daily;
@@ -29,8 +29,6 @@ function render_poem() {
   </div>`;
   const listOf = (ids, empty) => ids.length ? ids.map(id => { const p = POEMS.find(x => x.id === id); return p ? `<div class="list-item"><div class="li-main" style="cursor:pointer" onclick="S.poemView='${p.id}';render()"><b>${p.t}</b> · ${p.a}</div></div>` : ''; }).join('') : `<div class="empty">${empty}</div>`;
   return `
-  <div class="page-title">🏮 古诗词积累</div>
-  <div class="page-sub">每日一首 · 收藏 ${fav.length} · 背诵清单 ${rec.length}</div>
   ${detail(view)}
   <div class="card"><h3>📜 全部诗词</h3>
     <div class="row">${POEMS.map(p => `<div class="tab ${view.id === p.id ? 'active' : ''}" onclick="S.poemView='${p.id}';render()">${p.t}</div>`).join('')}</div>
@@ -46,12 +44,10 @@ function togglePoem(key, id) {
 }
 
 /* ============ 随记笔录 ============ */
-function render_note() {
+function noteFrag() {
   const notes = store.g('notes', []);
   const ed = S.noteEdit ? notes.find(n => n.id === S.noteEdit) : null;
   return `
-  <div class="page-title">✏️ 随记笔录</div>
-  <div class="page-sub">灵感 · 想法 · 生活碎片，随手记下</div>
   <div class="card">
     <textarea id="ntText" rows="3" placeholder="记录此刻的想法…">${ed ? esc(ed.text) : ''}</textarea>
     <div class="row mt"><button class="btn" onclick="saveNote()">${ed ? '保存修改 ✔' : '记下 ➕'}</button>${ed ? '<button class="btn sm ghost" onclick="S.noteEdit=null;render()">取消</button>' : ''}</div>

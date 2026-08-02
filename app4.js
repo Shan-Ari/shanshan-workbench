@@ -16,7 +16,17 @@ function saveAcctBase() {
   const base = {}; ACCTS.forEach((a, i) => { base[a] = (+$('#ab' + i).value) || 0; });
   store.s('acctBase', base); S.acctEdit = false; render();
 }
+function ledgerTabBar() {
+  const tabs = [['main', '🧾 记账'], ['repay', '💳 还款']];
+  return `<div class="subtabs">${tabs.map(t => `<button class="btn sm ${S.ledTab === t[0] ? 'pink' : 'ghost'}" onclick="S.ledTab='${t[0]}';render()">${t[1]}</button>`).join('')}</div>`;
+}
 function render_ledger() {
+  if (S.ledTab === 'repay') {
+    return `<div class="page-title">🧾 记账</div>
+  <div class="page-sub">每一笔都清清楚楚</div>
+  ${ledgerTabBar()}
+  ${repayFrag()}`;
+  }
   const all = store.g('ledger', []);
   const m = S.ledMonth;
   const list = all.filter(x => x.date.slice(0, 7) === m).sort((a, b) => b.date.localeCompare(a.date));
@@ -29,6 +39,7 @@ function render_ledger() {
   return `
   <div class="page-title">🧾 记账</div>
   <div class="page-sub">每一笔都清清楚楚</div>
+  ${ledgerTabBar()}
   <div class="card">
     <div class="row"><input type="month" value="${m}" onchange="S.ledMonth=this.value;render()"></div>
     <div class="stat-grid g2" style="margin-top:10px">
@@ -98,11 +109,12 @@ function render_ledger() {
   </div>
 `;}
 /* ============ 还款管理（与收支分开，独立页面） ============ */
+function repayFrag() { return repaySection(); }
 function render_repay() {
   return `
   <div class="page-title">💳 还款管理</div>
   <div class="page-sub">与日常收支分开记录，每月还款日前提醒你</div>
-  ${repaySection()}`;
+  ${repayFrag()}`;
 }
 function repayNext(plan) {
   const now = new Date(); now.setHours(0, 0, 0, 0);
@@ -379,7 +391,38 @@ function nextFestivalDate(f) {
   return null;
 }
 
+/* 最近的 n 个节日（公历/农历/移动/24节气），日历页与首页共用 */
+function festUpcoming(n) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  let festAll = FESTIVALS.slice();
+  if (typeof SL !== 'undefined' && SL.solarTerm) {
+    for (const yy of [now.getFullYear(), now.getFullYear() + 1]) {
+      for (const t of SL.solarTerm(yy)) festAll.push({ name: t.name, year: t.year, m: t.month, d: t.day, kind: '节气' });
+    }
+  }
+  return festAll.map(f => { const date = nextFestivalDate(f); return { ...f, date, days: date ? Math.round((date - now) / 864e5) : null }; })
+    .filter(f => f.days != null && f.days >= 0)
+    .sort((a, b) => a.days - b.days)
+    .slice(0, n || 8);
+}
+function festCardHtml(f) {
+  return `
+    <div class="fest-card">
+      <div><div class="fest-name">${f.name}<span class="fest-kind ${f.kind === '节气' ? 'term' : (f.kind === '农历' ? 'lun' : '')}">${f.kind}</span></div><div class="fest-date">${f.date.getFullYear()}-${pad(f.date.getMonth() + 1)}-${pad(f.date.getDate())}</div></div>
+      <div class="fest-days">${f.days === 0 ? '今天 🎉' : f.days + ' 天后'}</div>
+    </div>`;
+}
+function calendarTabBar() {
+  const tabs = [['main', '📅 日历'], ['cd', '⏳ 倒计时']];
+  return `<div class="subtabs">${tabs.map(t => `<button class="btn sm ${S.calTab === t[0] ? 'pink' : 'ghost'}" onclick="S.calTab='${t[0]}';render()">${t[1]}</button>`).join('')}</div>`;
+}
 function render_calendar() {
+  if (S.calTab === 'cd') {
+    return `<div class="page-title">📅 日程日历</div>
+  <div class="page-sub">安排在手，心中不慌 · 农历与节日已标注</div>
+  ${calendarTabBar()}
+  ${countdownFrag()}`;
+  }
   const evs = store.g('cal', []);
   const y = S.calY, m = S.calM;
   const first = new Date(y, m, 1).getDay();
@@ -404,24 +447,11 @@ function render_calendar() {
     cells += `<div class="cal-day ${ds === today() ? 'today' : ''} ${ds === S.calSel ? 'sel' : ''}" onclick="S.calSel='${ds}';render()"><span class="cal-num">${d}</span>${sub}${evDates.has(ds) ? '<span class="dot"></span>' : ''}</div>`;
   }
   const dayEvs = evs.filter(e => e.date === S.calSel).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-  const now = new Date(); now.setHours(0, 0, 0, 0);
-  let festAll = FESTIVALS.slice();
-  if (typeof SL !== 'undefined' && SL.solarTerm) {
-    for (const yy of [now.getFullYear(), now.getFullYear() + 1]) {
-      for (const t of SL.solarTerm(yy)) festAll.push({ name: t.name, year: t.year, m: t.month, d: t.day, kind: '节气' });
-    }
-  }
-  const festList = festAll.map(f => { const date = nextFestivalDate(f); return { ...f, date, days: date ? Math.round((date - now) / 864e5) : null }; })
-    .filter(f => f.days != null && f.days >= 0)
-    .sort((a, b) => a.days - b.days);
-  const festCards = festList.slice(0, 8).map(f => `
-    <div class="fest-card">
-      <div><div class="fest-name">${f.name}<span class="fest-kind ${f.kind === '节气' ? 'term' : (f.kind === '农历' ? 'lun' : '')}">${f.kind}</span></div><div class="fest-date">${f.date.getFullYear()}-${pad(f.date.getMonth() + 1)}-${pad(f.date.getDate())}</div></div>
-      <div class="fest-days">${f.days === 0 ? '今天 🎉' : (f.days < 0 ? '已过' : f.days + ' 天后')}</div>
-    </div>`).join('');
+  const festCards = festUpcoming(8).map(f => festCardHtml(f)).join('');
   return `
   <div class="page-title">📅 日程日历</div>
   <div class="page-sub">安排在手，心中不慌 · 农历与节日已标注</div>
+  ${calendarTabBar()}
   <div class="card">
     <div class="row" style="justify-content:space-between">
       <button class="btn sm ghost" onclick="calNav(-1)">◀ 上月</button>
