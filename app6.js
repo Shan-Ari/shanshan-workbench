@@ -264,7 +264,7 @@ function render_foreign() {
   ${body}`;
 }
 function krBody() {
-  const tabs = [['tool', '📚 工具库'], ['forty', '🔡 四十音'], ['greet', '👋 日常问候'], ['spell', '📐 拼写法则'], ['spoken', '💬 口语素材'], ['vocab', '📕 主题词汇'], ['mine', '📥 我的词库'], ['chat', '🤖 对话练习'], ['culture', '🍱 韩国文化']];
+  const tabs = [['tool', '📚 工具库'], ['forty', '🔡 四十音'], ['greet', '👋 日常问候'], ['spell', '📐 拼写法则'], ['spoken', '💬 口语素材'], ['vocab', '📚 单词学习'], ['chat', '🤖 对话练习'], ['culture', '🍱 韩国文化']];
   let body = '';
   if (S.krSub === 'tool') {
     body = `<div class="card"><h3>📚 分级中韩词典</h3>
@@ -321,15 +321,13 @@ function krBody() {
     const today3 = KR_CULTURE.slice(start, start + 3);
     body = `<div class="card"><h3>🍱 韩国文化（每日 3 条）</h3></div>` + today3.map(c => `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(c.c)}</b></div><div class="poem-sec" style="margin-top:6px">${esc(c.zh)}</div></div>`).join('');
   } else if (S.krSub === 'vocab') {
-    body = vbBody(KR_VOCAB, 'KR_VOCAB', KR_VCFG);
-  } else if (S.krSub === 'mine') {
     body = myVocabManage('ko-KR', 'ko', 'MY_KR', MY_KR_CFG);
   }
   return `<div class="tabs">${tabs.map(t => `<div class="tab ${S.krSub === t[0] ? 'active' : ''}" onclick="S.krSub='${t[0]}';render()">${t[1]}</div>`).join('')}</div>${body}
     <div class="li-sub" style="margin-top:10px">🔊 点喇叭跟读原音 · 🎙 点麦克风录下你的发音对比（需授权麦克风，建议用 https 或 localhost 打开）</div>`;
 }
 function jpBody() {
-  const tabs = [['tool', '📚 工具库'], ['fifty', '🔡 五十音'], ['greet', '👋 日常问候'], ['spell', '📐 拼写法则'], ['spoken', '💬 口语素材'], ['vocab', '📕 主题词汇'], ['mine', '📥 我的词库'], ['chat', '🤖 对话练习'], ['culture', '🍱 日本文化']];
+  const tabs = [['tool', '📚 工具库'], ['fifty', '🔡 五十音'], ['greet', '👋 日常问候'], ['spell', '📐 拼写法则'], ['spoken', '💬 口语素材'], ['vocab', '📚 单词学习'], ['chat', '🤖 对话练习'], ['culture', '🍱 日本文化']];
   let body = '';
   if (S.jpSub === 'tool') {
     body = `<div class="card"><h3>📚 分级中日词典</h3>
@@ -378,8 +376,6 @@ function jpBody() {
     const today3 = JP_CULTURE.slice(start, start + 3);
     body = `<div class="card"><h3>🍱 日本文化（每日 3 条）</h3></div>` + today3.map(c => `<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(c.c)}</b></div><div class="poem-sec" style="margin-top:6px">${esc(c.zh)}</div></div>`).join('');
   } else if (S.jpSub === 'vocab') {
-    body = vbBody(JP_VOCAB, 'JP_VOCAB', JP_VCFG);
-  } else if (S.jpSub === 'mine') {
     body = myVocabManage('ja-JP', 'ja', 'MY_JP', MY_JP_CFG);
   }
   return `<div class="tabs">${tabs.map(t => `<div class="tab ${S.jpSub === t[0] ? 'active' : ''}" onclick="S.jpSub='${t[0]}';render()">${t[1]}</div>`).join('')}</div>${body}
@@ -1071,6 +1067,30 @@ function clearMyVocab(lang) {
   if (typeof confirm === 'function' && !confirm('确定清空本语言的全部手动词库吗？\n此操作不可恢复（已学进度不受影响）。')) return;
   store.s(myStoreKey(lang), []); render();
 }
+/* 把系统内置预设词库（韩语/日语主题词汇、英语基础词库）一次性加入「我的词库」，并把已学进度合并过去 */
+function loadMyPreset(lang) {
+  const cfg = lang === 'ko-KR' ? MY_KR_CFG : lang === 'ja-JP' ? MY_JP_CFG : MY_EN_CFG;
+  const preset = lang === 'ko-KR' ? KR_VOCAB : lang === 'ja-JP' ? JP_VOCAB : (typeof WORDS !== 'undefined' ? WORDS : []);
+  const pCfg = lang === 'ko-KR' ? KR_VCFG : lang === 'ja-JP' ? JP_VCFG : { stateKey: 'wordRec', learnedKey: 'wordLearned', ckKey: 'wordStudyCk' };
+  const arr = store.g(myStoreKey(lang), []);
+  const have = new Set(arr.map(x => x.w));
+  let added = 0, dup = 0;
+  preset.forEach(w => { if (have.has(w.w)) { dup++; return; } arr.push(w); have.add(w.w); added++; });
+  store.s(myStoreKey(lang), arr);
+  // 合并已学词、复习进度、打卡天数（仅合并词库中已存在的词，避免脏数据）
+  const oldL = store.g(pCfg.learnedKey, []); const newL = store.g(cfg.learnedKey, []);
+  oldL.forEach(w => { if (have.has(w) && !newL.includes(w)) newL.push(w); });
+  store.s(cfg.learnedKey, newL);
+  const oldR = store.g(pCfg.stateKey, {}); const newR = store.g(cfg.stateKey, {});
+  Object.keys(oldR).forEach(w => { if (have.has(w)) { const o = oldR[w]; if (!newR[w] || o.level > newR[w].level) newR[w] = o; } });
+  store.s(cfg.stateKey, newR);
+  const oldCk = store.g(pCfg.ckKey, []); const newCk = store.g(cfg.ckKey, []);
+  const ckSet = new Set(newCk);
+  oldCk.forEach(d => { if (!ckSet.has(d)) { newCk.push(d); ckSet.add(d); } });
+  store.s(cfg.ckKey, newCk);
+  render();
+  const msg = document.getElementById('mw_preset_msg'); if (msg) msg.textContent = `已加入预设词 ${added} 个（跳过重复 ${dup} 个），已学进度已合并`;
+}
 function myVocabManage(lang, exField, srcName, cfg) {
   const storeKey = myStoreKey(lang);
   const list = store.g(storeKey, []);
@@ -1080,6 +1100,12 @@ function myVocabManage(lang, exField, srcName, cfg) {
     <div class="li-sub" style="margin-bottom:6px">选一个主题，点「加载」即可把该主题词包加入你的词库，并自动进入艾宾浩斯复习。不同主题互不重复，可多次加载不同主题来扩充词汇量。</div>
     <div class="row"><select id="mw_pack_sel">${packThemes.map(t => `<option>${esc(t)}</option>`).join('')}</select>
     <button class="btn" onclick="loadMyPack('${lang}','mw_pack_sel')">加载到我的词库 ➕</button><span id="mw_pack_msg" class="li-sub"></span></div>
+  </div>` : '';
+  const presetArr = lang === 'ko-KR' ? KR_VOCAB : lang === 'ja-JP' ? JP_VOCAB : (typeof WORDS !== 'undefined' ? WORDS : []);
+  const presetName = lang === 'ko-KR' ? '韩语主题词汇' : lang === 'ja-JP' ? '日语主题词汇' : '英语基础词库';
+  const presetBtn = presetArr.length ? `<div class="card"><h3>📚 系统预设词库（一键加入）</h3>
+    <div class="li-sub" style="margin-bottom:6px">把内置的「${presetName}」（${presetArr.length} 词）一次性加入你的词库，和手动导入的词一起按统一进度学习。已学进度会自动合并，不会重复学。</div>
+    <div class="row"><button class="btn" onclick="loadMyPreset('${lang}')">加入预设词库 ➕</button><span id="mw_preset_msg" class="li-sub"></span></div>
   </div>` : '';
   const phHint = lang === 'en-US' ? 'apple' : lang === 'ko-KR' ? '사과' : 'りんご';
   const learn = list.length ? `<div class="card"><h3>📚 我的词库学习区（${list.length} 词）</h3>${vbBody(src, srcName, cfg)}</div>`
@@ -1099,6 +1125,7 @@ function myVocabManage(lang, exField, srcName, cfg) {
     <div class="row mt"><button class="btn" onclick="importMyWords('${lang}')">导入到本语言词库 ➕</button><span id="mw_imp_msg" class="li-sub"></span></div>
   </div>
   ${packSection}
+  ${presetBtn}
   ${list.length ? (() => {
     const groups = {};
     list.forEach(w => { const k = w.topic || '📝 手动添加'; (groups[k] = groups[k] || []).push(w); });

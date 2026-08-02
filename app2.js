@@ -107,7 +107,7 @@ function englishFrag() {
   const e = engData();
   const speakCk = store.g('speakCk', []);
   const totalMins = e.speak.reduce((a, b) => a + (+b.mins || 0), 0);
-  const tabs = [['speak', '🗣 口语练习'], ['word', '📖 单词学习'], ['sent', '✍️ 语句积累'], ['mine', '📥 我的词库']];
+  const tabs = [['speak', '🗣 口语练习'], ['word', '📚 单词学习'], ['sent', '✍️ 语句积累']];
   let body = '';
   if (S.engTab === 'speak') {
     const mats = SPEAK_SETS[dayIdx % SPEAK_SETS.length];
@@ -132,63 +132,6 @@ function englishFrag() {
       ${e.speak.slice(-6).reverse().map(s => `<div class="list-item"><div class="li-main">${s.date} · ${s.mins}分钟${s.note ? ' · ' + esc(s.note) : ''}</div></div>`).join('') || '<div class="empty">暂无口语练习记录</div>'}
     </div>`;
   } else if (S.engTab === 'word') {
-    const L = learnedSet(), rec = wordState();
-    const todayNew = learnTodayWords();
-    const due = reviewDue();
-    const ck = store.g('wordStudyCk', []);
-    const lvCount = [0, 1, 2, 3, 4, 5, 6].map(l => WORDS.filter(w => rec[w.w] && rec[w.w].level === l).length);
-    const newCard = (w) => {
-      const gi = WORDS.indexOf(w);
-      return `<div class="card" style="padding:12px">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <div><b style="font-size:16px">${esc(w.w)}</b> <span class="li-sub">${esc(w.ph)}</span></div>
-          <div class="row" style="gap:6px">
-            <button class="btn sm" onclick="speakWord(${gi})">🔊</button>
-            <span id="wrd_${gi}"></span>
-            <button class="btn sm ghost" onclick="recToggle('wrd_${gi}','en-US','${w.w}')">🎙</button>
-            <button class="btn sm ghost" onclick="toggleWrong('${w.w}')" title="加入错词本">🔴</button>
-          </div>
-        </div>
-        <div class="li-sub" style="margin-top:4px">${esc(w.mean)}</div>
-        ${w.ex.map((x, ei) => `<div class="list-item" style="border:none;padding:6px 0">
-          <div class="li-main" style="display:flex;gap:6px;align-items:flex-start"><span style="flex:1">${esc(x.en)}<div class="li-sub">${esc(x.zh)}</div></span>
-          <button class="btn sm" onclick="speakEx(${gi},${ei})">🔊</button></div>
-          <div class="row mt" style="justify-content:flex-start"><span id="wex_${gi}_${ei}"></span><button class="btn sm ghost" onclick="recToggle('wex_${gi}_${ei}','en-US')">🎙 跟读</button></div>
-        </div>`).join('')}
-      </div>`;
-    };
-    body = `
-    <div class="card"><h3>📚 今日新词（${todayNew.length} 个）</h3>
-      <div class="li-sub" style="margin-bottom:8px">学完点下方按钮，自动加入艾宾浩斯复习计划</div>
-      ${todayNew.map(w => newCard(w)).join('')}
-      <button class="btn mt" onclick="finishTodayNew()">✅ 我已学完今日新词</button>
-    </div>
-    <div class="card"><h3>🔁 待复习（${due.length} 个）</h3>
-      ${due.length ? due.map(w => { const gi = WORDS.indexOf(w); return `<div class="list-item"><div class="li-main" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${esc(w.w)}</b><span class="li-sub">${esc(w.ph)} · ${esc(w.mean)}</span>
-        <button class="btn sm" onclick="speakWord(${gi})">🔊</button><span id="rv_${gi}"></span><button class="btn sm ghost" onclick="recToggle('rv_${gi}','en-US','${w.w}')">🎙</button>
-        <button class="btn sm ghost" onclick="toggleWrong('${esc(w.w)}')" title="加入错词本">🔴</button>
-        <button class="btn sm pink" onclick="reviewDone('${esc(w.w)}')">记住了 🔁</button></div></div>`; }).join('') : '<div class="empty">今日没有待复习的词，太棒了 🎉</div>'}
-    </div>
-    ${(() => { const wrong = wrongSet(); return `<div class="card"><h3>🔴 错词本 / 生词本（${wrong.length}）</h3>
-      <div class="li-sub" style="margin-bottom:8px">跟读识别不符、或点 🔴 加入的词会在这里，重点复习。</div>
-      ${wrong.length ? wrong.map(w => { const gi = WORDS.findIndex(x => x.w === w); const wd = WORDS[gi]; return `<div class="list-item"><div class="li-main" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${esc(w)}</b>${wd ? ` <span class="li-sub">${esc(wd.ph)} · ${esc(wd.mean)}</span>` : ''}
-        <button class="btn sm" onclick="speak('${esc(w)}','en-US')">🔊</button><span id="wng_${gi}"></span><button class="btn sm ghost" onclick="recToggle('wng_${gi}','en-US','${esc(w)}')">🎙</button>
-        <button class="btn sm pink" onclick="toggleWrong('${esc(w)}')">已掌握 🔴</button></div></div>`; }).join('') + `<button class="btn mt ghost" onclick="clearWrong()">全部标记为已掌握</button>` : '<div class="empty">还没有错词，继续保持 💪</div>'}
-    </div>`; })()}
-    <div class="card"><h3>📈 学习进度（历史）</h3>
-      <div class="stat-grid">
-        <div class="stat"><div class="num">${L.length}</div><div class="lb">已学词数</div></div>
-        <div class="stat"><div class="num pk">${streakOf(ck)}</div><div class="lb">连续学习(天)</div></div>
-        <div class="stat"><div class="num">${ck.length}</div><div class="lb">累计学习(天)</div></div>
-      </div>
-      <div class="li-sub" style="margin-top:6px">熟练度分布（L0 生疏 → L6 掌握）：${lvCount.join(' / ')}</div>
-      <div class="li-sub">艾宾浩斯间隔：当天 → 1 → 2 → 4 → 7 → 15 → 30 天逐级复习</div>
-    </div>
-    <div class="card"><h3>📝 生词本</h3>
-      <div class="row"><input id="nwWord" placeholder="生词"><input class="grow" id="nwMean" placeholder="释义"><button class="btn" onclick="addNewWord()">记录 ➕</button></div>
-      ${e.newWords.slice().reverse().map(w => `<div class="list-item"><div class="li-main"><b>${esc(w.word)}</b> — ${esc(w.mean)}</div><button class="btn sm warn" onclick="delEng('newWords','${w.id}')">删</button></div>`).join('') || '<div class="empty">还没有生词记录</div>'}
-    </div>`;
-  } else if (S.engTab === 'mine') {
     body = myVocabManage('en-US', 'en', 'MY_EN', MY_EN_CFG);
   } else {
     const ed = S.sentEdit ? e.sents.find(x => x.id === S.sentEdit) : null;
