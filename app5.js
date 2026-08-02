@@ -1,12 +1,55 @@
 /* ============ 通用语音工具：发音 + 跟读录音对比 ============ */
 /* 喇叭发音：text 文本，lang 语言码（en-US / ko-KR / ja-JP / zh-CN） */
+/* 移动端（尤其 iOS Safari）兼容处理：
+   - 缓存 voices 列表（iOS 上 getVoices 首屏为空、异步就绪）
+   - 显式按语言选 voice，提升命中率
+   - 全局持有 utterance，避免 iOS 垃圾回收导致朗读中断
+   - cancel() 后延迟再 speak，规避 iOS “cancel 紧跟 speak 吞音” 已知 bug
+   - voices 未就绪时等待 voiceschanged 或超时兜底，确保首次也能出声 */
+let _voicesCache = [];
+let _voicesReady = false;
+let _curUtter = null;
+function _loadVoices() {
+  try { _voicesCache = (window.speechSynthesis && speechSynthesis.getVoices()) || []; }
+  catch (e) { _voicesCache = []; }
+  if (_voicesCache.length) _voicesReady = true;
+}
+function _pickVoice(lang) {
+  if (!_voicesCache.length) return null;
+  const L = (lang || 'en-US').toLowerCase();
+  let m = _voicesCache.filter(v => (v.lang || '').toLowerCase() === L);
+  if (m.length) return m[0];
+  const pref = L.split('-')[0];
+  m = _voicesCache.filter(v => (v.lang || '').toLowerCase().split('-')[0] === pref);
+  return m[0] || null;
+}
+if (typeof speechSynthesis !== 'undefined') {
+  _loadVoices();
+  speechSynthesis.onvoiceschanged = _loadVoices;
+}
 function speak(text, lang) {
   try {
-    if (!('speechSynthesis' in window)) { alert('当前浏览器不支持语音发音'); return; }
+    if (!text) return;
+    if (!('speechSynthesis' in window)) { alert('当前浏览器不支持语音发音，建议用 Chrome 或 Safari 打开'); return; }
+    if (!_voicesCache.length) _loadVoices();
+    const L = lang || 'en-US';
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang || 'en-US'; u.rate = 0.92; u.pitch = 1;
-    speechSynthesis.speak(u);
+    u.lang = L; u.rate = 0.92; u.pitch = 1;
+    const v = _pickVoice(L);
+    if (v) u.voice = v;
+    _curUtter = u; // 防 iOS GC 中断
+    const fire = () => { try { speechSynthesis.speak(u); } catch (e) { alert('语音发音失败：' + e.message); } };
+    if (!_voicesReady || !_voicesCache.length) {
+      // iOS/部分安卓：voices 首屏为空，等 voiceschanged 就绪后再读一次
+      let done = false;
+      const onReady = () => { if (done) return; done = true; _loadVoices(); speechSynthesis.onvoiceschanged = _loadVoices; fire(); };
+      speechSynthesis.onvoiceschanged = onReady;
+      setTimeout(onReady, 700); // 兜底：若语音引擎一直不回调，700ms 后强制朗读
+    } else {
+      // 已知 iOS bug：cancel 紧跟 speak 会吞掉发音，延迟 120ms
+      setTimeout(fire, 120);
+    }
   } catch (e) { alert('语音发音失败：' + e.message); }
 }
 /* 跟读录音对比：点击开始录音，再点停止→自动回放你的录音 + best-effort 语音识别 */

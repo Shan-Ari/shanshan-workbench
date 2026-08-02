@@ -1006,7 +1006,7 @@ function vbBody(src, srcName, cfg) {
   <div class="card"><h3>🔴 错词本 / 生词本（${wrong.length}）</h3>
     <div class="li-sub" style="margin-bottom:8px">跟读识别不符、或点 🔴 加入的词会在这里，重点复习。</div>
     ${wrong.length ? wrong.map(w => { const gi = src.findIndex(x => x.w === w); const wd = src[gi]; return `<div class="list-item"><div class="li-main" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${esc(w)}</b>${wd ? ` <span class="li-sub">${esc(wd.ph)} · ${esc(wd.mean)}</span>` : ''}
-      <button class="btn sm" onclick="speak('${esc(w)}','${lang}')">🔊</button><span id="vbw_${srcName}_${gi}"></span><button class="btn sm ghost" onclick="recToggle('vbw_${srcName}_${gi}','${lang}','${esc(w)}','${wrongKey}')">🎙</button>
+      <button class="btn sm" onclick="speak('${esc(w).replace(/'/g, "\\'")}','${lang}')">🔊</button><span id="vbw_${srcName}_${gi}"></span><button class="btn sm ghost" onclick="recToggle('vbw_${srcName}_${gi}','${lang}','${esc(w).replace(/'/g, "\\'")}','${wrongKey}')">🎙</button>
       <button class="btn sm pink" onclick="toggleWrongK('${esc(w)}','${wrongKey}')">已掌握 🔴</button></div></div>`; }).join('') + `<button class="btn mt ghost" onclick="clearWrongK('${wrongKey}')">全部标记为已掌握</button>` : '<div class="empty">还没有错词，继续保持 💪</div>'}
   </div>
   <div class="card"><h3>📈 学习进度（历史）</h3>
