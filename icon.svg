@@ -1,12 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#9cc3f5"/>
-      <stop offset="1" stop-color="#f5a9cb"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8C3CD"/>
+      <stop offset="0.5" stop-color="#F9E79F"/>
+      <stop offset="1" stop-color="#B8E0D2"/>
     </linearGradient>
   </defs>
-  <rect width="128" height="128" rx="28" fill="url(#g)"/>
-  <circle cx="64" cy="56" r="26" fill="#ffffff" opacity="0.92"/>
-  <text x="64" y="66" font-size="28" text-anchor="middle" fill="#5a7fbf" font-family="sans-serif" font-weight="bold">姗</text>
-  <rect x="34" y="92" width="60" height="8" rx="4" fill="#ffffff" opacity="0.85"/>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <rect x="24" y="24" width="80" height="80" rx="18" fill="#ffffff" opacity="0.97"/>
+  <g>
+    <rect x="36" y="36" width="15" height="15" rx="4" fill="#F8C3CD"/>
+    <rect x="57" y="36" width="15" height="15" rx="4" fill="#F9E79F"/>
+    <rect x="78" y="36" width="15" height="15" rx="4" fill="#B8E0D2"/>
+    <rect x="36" y="57" width="15" height="15" rx="4" fill="#B8E0D2"/>
+    <rect x="57" y="57" width="15" height="15" rx="4" fill="#F8C3CD"/>
+    <rect x="78" y="57" width="15" height="15" rx="4" fill="#F9E79F"/>
+    <rect x="36" y="78" width="15" height="15" rx="4" fill="#F9E79F"/>
+    <rect x="57" y="78" width="15" height="15" rx="4" fill="#B8E0D2"/>
+    <rect x="78" y="78" width="15" height="15" rx="4" fill="#F8C3CD"/>
+  </g>
 </svg>
