@@ -81,7 +81,7 @@ function render_pet() {
           <button class="btn ${S.petSnackLog==='in'?'pink':'ghost'}" onclick="S.petSnackLog='in';render()">进账</button>
           <button class="btn ${S.petSnackLog==='out'?'pink':'ghost'}" onclick="S.petSnackLog='out';render()">消耗</button>
         </div>
-        ${snList.slice().reverse().map(x => `<div class="list-item"><div class="li-main"><b>${esc(x.name)}</b> · <span class="tag ${x.act === 'out' ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('snack', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('snack','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无零食记录</div>'}</div>`;
+        ${snList.slice().reverse().map(x => `<div class="list-item"><div class="li-main">${x.date} · <b>${esc(x.name)}</b> · <span class="tag ${x.act === 'out' ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('snack', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('snack','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无零食记录</div>'}</div>`;
   }
   return `<div class="page-title">🐱 宠物记录</div><div class="page-sub">毛孩子的日常，都值得被记录</div>
   <div class="tabs">${tabs.map(t => `<div class="tab ${S.petTab === t[0] ? 'active' : ''}" onclick="S.petTab='${t[0]}';render()">${t[1]}</div>`).join('')}</div>${body}`;
