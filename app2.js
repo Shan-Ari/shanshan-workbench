@@ -21,6 +21,7 @@ function petQtyStr(x) {
   if (x.kind) return x.kind;
   return '旧记录';
 }
+function petIsOut(x) { return x.act === 'out' || (x.kind && x.kind !== '购买'); }
 function petData() { return store.g('pet', { bath: [], deworm: [], supply: [], snack: [] }); }
 function render_pet() {
   const p = petData();
@@ -49,11 +50,17 @@ function render_pet() {
         ${low ? '<div class="li-sub" style="color:var(--blue-d)">⚠ 需补货</div>' : ''}
       </div>`;
     }).join('');
+    const supList = p.supply.filter(x => S.petSupplyLog === 'all' || (S.petSupplyLog === 'out' ? petIsOut(x) : !petIsOut(x)));
     body = `<div class="card"><h3>📦 库存概览</h3><div class="row" style="flex-wrap:wrap;gap:10px">${items}</div></div>
       <div class="card"><h3>猫砂 / 猫粮 记录</h3>
         <div class="row"><input type="date" id="ptDate" value="${today()}"><select id="ptItem"><option>猫砂</option><option>猫粮</option></select><select id="ptAct"><option value="in">购买(进账)</option><option value="out">使用(消耗)</option></select></div>
         <div class="row mt"><input id="ptQty" type="number" min="0" step="0.1" placeholder="数量" style="width:78px"><input id="ptUnit" placeholder="单位(kg/包/个)" style="width:108px"><input class="grow" id="ptNote" placeholder="品牌/价格等(选填)"><button class="btn" onclick="addPet('supply')">记录 ➕</button></div>
-        ${p.supply.slice().reverse().map(x => `<div class="list-item"><div class="li-main">${x.date} · <span class="tag b">${x.item}</span> <span class="tag ${x.act === 'out' || (x.kind && x.kind !== '购买') ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('supply', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('supply','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无记录</div>'}</div>`;
+        <div class="subtabs">
+          <button class="btn ${S.petSupplyLog==='all'?'pink':'ghost'}" onclick="S.petSupplyLog='all';render()">全部</button>
+          <button class="btn ${S.petSupplyLog==='in'?'pink':'ghost'}" onclick="S.petSupplyLog='in';render()">进账</button>
+          <button class="btn ${S.petSupplyLog==='out'?'pink':'ghost'}" onclick="S.petSupplyLog='out';render()">消耗</button>
+        </div>
+        ${supList.slice().reverse().map(x => `<div class="list-item"><div class="li-main">${x.date} · <span class="tag b">${x.item}</span> <span class="tag ${petIsOut(x) ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('supply', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('supply','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无记录</div>'}</div>`;
   } else {
     const stock = petStockSum(p.snack, 'name');
     const snackCards = Object.keys(stock).map(n => {
@@ -64,11 +71,17 @@ function render_pet() {
         ${low ? '<div class="li-sub" style="color:var(--blue-d)">⚠ 需补货</div>' : ''}
       </div>`;
     }).join('');
+    const snList = p.snack.filter(x => S.petSnackLog === 'all' || (S.petSnackLog === 'out' ? x.act === 'out' : x.act !== 'out'));
     body = `${snackCards ? `<div class="card"><h3>🍪 零食库存</h3><div class="row" style="flex-wrap:wrap;gap:10px">${snackCards}</div></div>` : ''}
       <div class="card"><h3>零食记录</h3>
         <div class="row"><input type="date" id="ptDate" value="${today()}"><input class="grow" id="ptName" placeholder="零食名称"></div>
         <div class="row mt"><select id="ptAct"><option value="in">买入(进账)</option><option value="out">消耗</option></select><input id="ptQty" type="number" min="0" step="0.1" placeholder="数量" style="width:78px"><input id="ptUnit" placeholder="单位(包/个)" style="width:98px"><input class="grow" id="ptNote" placeholder="备注(选填)"><button class="btn" onclick="addPet('snack')">记录 ➕</button></div>
-        ${p.snack.slice().reverse().map(x => `<div class="list-item"><div class="li-main"><b>${esc(x.name)}</b> · <span class="tag ${x.act === 'out' ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('snack', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('snack','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无零食记录</div>'}</div>`;
+        <div class="subtabs">
+          <button class="btn ${S.petSnackLog==='all'?'pink':'ghost'}" onclick="S.petSnackLog='all';render()">全部</button>
+          <button class="btn ${S.petSnackLog==='in'?'pink':'ghost'}" onclick="S.petSnackLog='in';render()">进账</button>
+          <button class="btn ${S.petSnackLog==='out'?'pink':'ghost'}" onclick="S.petSnackLog='out';render()">消耗</button>
+        </div>
+        ${snList.slice().reverse().map(x => `<div class="list-item"><div class="li-main"><b>${esc(x.name)}</b> · <span class="tag ${x.act === 'out' ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('snack', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('snack','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无零食记录</div>'}</div>`;
   }
   return `<div class="page-title">🐱 宠物记录</div><div class="page-sub">毛孩子的日常，都值得被记录</div>
   <div class="tabs">${tabs.map(t => `<div class="tab ${S.petTab === t[0] ? 'active' : ''}" onclick="S.petTab='${t[0]}';render()">${t[1]}</div>`).join('')}</div>${body}`;
