@@ -17,15 +17,33 @@ function _loadVoices() {
 function _pickVoice(lang) {
   if (!_voicesCache.length) return null;
   const L = (lang || 'en-US').toLowerCase();
-  let m = _voicesCache.filter(v => (v.lang || '').toLowerCase() === L);
-  if (m.length) return m[0];
-  const pref = L.split('-')[0];
-  m = _voicesCache.filter(v => (v.lang || '').toLowerCase().split('-')[0] === pref);
+  const pref = (store.g('voicePref', {}))[lang] || '';
+  if (pref) {
+    let m = _voicesCache.filter(v => v.name === pref);
+    if (!m.length) m = _voicesCache.filter(v => (v.name || '').indexOf(pref) >= 0);
+    if (m.length) return m[0];
+  }
+  const same = _voicesCache.filter(v => (v.lang || '').toLowerCase() === L);
+  if (same.length) {
+    const nice = same.find(v => /google|samantha|yuna|kyoko|premium|natural|neural|female|女/i.test(v.name || '')) || same[0];
+    return nice;
+  }
+  const p2 = L.split('-')[0];
+  const m = _voicesCache.filter(v => (v.lang || '').toLowerCase().split('-')[0] === p2);
   return m[0] || null;
+}
+let _voiceRenderTimer = null;
+function _afterVoices() {
+  _loadVoices();
+  speechSynthesis.onvoiceschanged = _afterVoices;
+  if (typeof render === 'function' && document.getElementById('voicePick')) {
+    clearTimeout(_voiceRenderTimer);
+    _voiceRenderTimer = setTimeout(render, 300);
+  }
 }
 if (typeof speechSynthesis !== 'undefined') {
   _loadVoices();
-  speechSynthesis.onvoiceschanged = _loadVoices;
+  speechSynthesis.onvoiceschanged = _afterVoices;
 }
 function speak(text, lang) {
   try {
@@ -35,7 +53,7 @@ function speak(text, lang) {
     const L = lang || 'en-US';
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = L; u.rate = 0.92; u.pitch = 1;
+    u.lang = L; u.rate = 0.9; u.pitch = 1.04;
     const v = _pickVoice(L);
     if (v) u.voice = v;
     _curUtter = u; // 防 iOS GC 中断
@@ -43,7 +61,7 @@ function speak(text, lang) {
     if (!_voicesReady || !_voicesCache.length) {
       // iOS/部分安卓：voices 首屏为空，等 voiceschanged 就绪后再读一次
       let done = false;
-      const onReady = () => { if (done) return; done = true; _loadVoices(); speechSynthesis.onvoiceschanged = _loadVoices; fire(); };
+      const onReady = () => { if (done) return; done = true; _afterVoices(); fire(); };
       speechSynthesis.onvoiceschanged = onReady;
       setTimeout(onReady, 700); // 兜底：若语音引擎一直不回调，700ms 后强制朗读
     } else {
@@ -51,6 +69,27 @@ function speak(text, lang) {
       setTimeout(fire, 120);
     }
   } catch (e) { alert('语音发音失败：' + e.message); }
+}
+function setVoice(lang, name) {
+  const p = store.g('voicePref', {});
+  if (name) p[lang] = name; else delete p[lang];
+  store.s('voicePref', p);
+}
+function voicePickHtml() {
+  const langs = [['en-US', '英语'], ['ko-KR', '韩语'], ['ja-JP', '日语']];
+  const pref = store.g('voicePref', {});
+  const rows = langs.map(([code, nm]) => {
+    const opts = _voicesCache.filter(v => {
+      const vl = (v.lang || '').toLowerCase();
+      return vl === code.toLowerCase() || vl.split('-')[0] === code.toLowerCase().split('-')[0];
+    });
+    const sel = pref[code] || '';
+    const os = ['<option value="">自动（系统默认）</option>'].concat(
+      opts.map(v => `<option value="${esc(v.name)}" ${v.name === sel ? 'selected' : ''}>${esc(v.name)}</option>`)
+    ).join('');
+    return `<div class="row mt" style="gap:8px;align-items:center"><span style="width:40px">${nm}</span><select onchange="setVoice('${code}',this.value)" style="flex:1;min-width:0">${os}</select></div>`;
+  }).join('');
+  return `<details class="folder" id="voicePick"><summary class="folder-sum">🎚 发音人设置（点开挑选更好听的声音）</summary><div class="folder-body">${rows}<div class="li-sub" style="margin-top:8px">不同设备声音不同，挑一个顺耳的即可；选「自动」则用系统默认更自然的发音。</div></div></details>`;
 }
 /* 跟读录音对比：点击开始录音，再点停止→自动回放你的录音 + best-effort 语音识别 */
 const _recs = {};

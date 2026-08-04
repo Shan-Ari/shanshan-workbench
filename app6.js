@@ -260,6 +260,7 @@ function render_foreign() {
   return `
   <div class="page-title">🌐 外语学习</div>
   <div class="page-sub">英语 · 韩语 · 日语，从发音到对话一点点啃</div>
+  ${voicePickHtml()}
   ${foreignTabBar()}
   ${body}`;
 }
@@ -275,11 +276,11 @@ function krBody() {
   } else if (S.krSub === 'forty') {
     body = `
     <div class="card"><h3>🔡 辅音（19 个）</h3>
-      <div class="mod-grid">${KR_CONS.map((c, i) => `<div class="mod-card" style="padding:10px 4px"><span class="ic" style="width:40px;height:40px"><span class="emoji-ic" style="font-size:22px">${c[0]}</span></span><div class="nm" style="font-size:11px">${c[1]}<br>${c[2]}</div>
+      <div class="mod-grid">${KR_CONS.map((c, i) => `<div class="mod-card" style="padding:10px 4px"><span class="ic" style="width:40px;height:40px;cursor:pointer" title="点击字母听发音" onclick="speak('${c[0]}','ko-KR')"><span class="emoji-ic" style="font-size:22px">${c[0]}</span></span><div class="nm" style="font-size:11px">${c[1]}<br>${c[2]}</div>
         <div class="row mt" style="justify-content:center;gap:4px"><button class="btn sm" onclick="speak('${c[0]}','ko-KR')">🔊</button><span id="kc_${i}"></span><button class="btn sm ghost" onclick="recToggle('kc_${i}','ko-KR')">🎙</button></div></div>`).join('')}</div>
     </div>
     <div class="card"><h3>🔡 元音（21 个）</h3>
-      <div class="mod-grid">${KR_VOW.map((v, i) => `<div class="mod-card" style="padding:10px 4px"><span class="ic" style="width:40px;height:40px"><span class="emoji-ic" style="font-size:22px">${v[0]}</span></span><div class="nm" style="font-size:11px">${v[1]}<br>${v[2]}</div>
+      <div class="mod-grid">${KR_VOW.map((v, i) => `<div class="mod-card" style="padding:10px 4px"><span class="ic" style="width:40px;height:40px;cursor:pointer" title="点击字母听发音" onclick="speak('${v[0]}','ko-KR')"><span class="emoji-ic" style="font-size:22px">${v[0]}</span></span><div class="nm" style="font-size:11px">${v[1]}<br>${v[2]}</div>
         <div class="row mt" style="justify-content:center;gap:4px"><button class="btn sm" onclick="speak('${v[0]}','ko-KR')">🔊</button><span id="kv_${i}"></span><button class="btn sm ghost" onclick="recToggle('kv_${i}','ko-KR')">🎙</button></div></div>`).join('')}</div>
     </div>`;
   } else if (S.krSub === 'greet') {
@@ -336,7 +337,7 @@ function jpBody() {
       <div class="poem-sec" style="margin-top:8px">说明：词典分级用于筛选「日常问候」推送的词汇难度。可随时切换。</div>
     </div>`;
   } else if (S.jpSub === 'fifty') {
-    const block = (title, arr) => `<div class="card"><h3>${title}</h3><div class="mod-grid">${arr.map((c, i) => `<div class="mod-card" style="padding:10px 4px"><span class="ic" style="width:40px;height:40px"><span class="emoji-ic" style="font-size:20px">${c[0]}</span></span><div class="nm" style="font-size:11px">${c[1]}</div>
+    const block = (title, arr) => `<div class="card"><h3>${title}</h3><div class="mod-grid">${arr.map((c, i) => `<div class="mod-card" style="padding:10px 4px"><span class="ic" style="width:40px;height:40px;cursor:pointer" title="点击假名听发音" onclick="speak('${c[0]}','ja-JP')"><span class="emoji-ic" style="font-size:20px">${c[0]}</span></span><div class="nm" style="font-size:11px">${c[1]}</div>
         <div class="row mt" style="justify-content:center;gap:4px"><button class="btn sm" onclick="speak('${c[0]}','ja-JP')">🔊</button><span id="jp_${title}_${i}"></span><button class="btn sm ghost" onclick="recToggle('jp_${title}_${i}','ja-JP')">🎙</button></div></div>`).join('')}</div></div>`;
     body = block('清音(46)', JP_GOJUON) + block('浊音/半浊(25)', JP_DAKUON) + block('拗音(27)', JP_YOON);
   } else if (S.jpSub === 'greet') {
