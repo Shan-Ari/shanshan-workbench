@@ -48,7 +48,7 @@ const PAGES = [
   { id: 'monthly', ic: '🌙', nm: '月复盘' }
 ];
 /* 页面临时状态 */
-const S = { planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', petSupplyLog: 'all', petSnackLog: 'all', cdEdit: null, repayEdit: null, repayPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all', habitTab: 'check', habitLog: { habit: 'all', from: '', to: '', kw: '', open: false }, ledTab: 'main', calTab: 'main',
+const S = { planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', petSupplyLog: 'all', petSnackLog: 'all', cdEdit: null, repayEdit: null, repayPlan: null, loanEdit: null, loanPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all', habitTab: 'check', habitLog: { habit: 'all', from: '', to: '', kw: '', open: false }, ledTab: 'main', calTab: 'main',
   /* 灵感补给站 / 表达 临时态 */
   quoteIdx: 0, insTab: 'good', expTab: 'daily' };
 
