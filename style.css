@@ -302,6 +302,15 @@ details.rev-item summary::-webkit-details-marker{display:none;}
 /* 习惯打卡 */
 .habit-off{opacity:.55;}
 .hbDay{vertical-align:middle;margin-right:3px;}
+/* 打卡记录后台查询 */
+.log-box{margin-top:2px;}
+.log-sum{cursor:pointer;font-weight:700;font-size:15px;padding:4px 0;}
+.log-sum .li-sub{font-weight:400;}
+.log-list{max-height:340px;overflow-y:auto;border-top:1px dashed var(--line);padding-top:6px;}
+.log-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;background:var(--amber-l);margin-bottom:4px;}
+.log-date{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;min-width:84px;}
+.log-name{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.log-time{font-variant-numeric:tabular-nums;color:var(--blue);font-weight:600;font-size:13px;min-width:46px;text-align:right;}
 /* 习惯打卡热力图 */
 .heat-wrap{overflow-x:auto;padding-bottom:6px;}
 .heat-grid{display:flex;gap:3px;}
@@ -331,3 +340,7 @@ details.rev-item summary::-webkit-details-marker{display:none;}
   .wt-total b{font-size:27px;}
   .wt-col span{font-size:8px;}
 }
+/* 宠物库存概览 */
+.stock-card{flex:1;min-width:108px;background:var(--amber-l);border-radius:12px;padding:8px 12px;text-align:center;}
+.stock-num{font-size:22px;font-weight:800;line-height:1.15;}
+.stock-u{font-size:12px;font-weight:600;}

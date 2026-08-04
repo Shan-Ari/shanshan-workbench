@@ -629,7 +629,6 @@ function render_habit() {
   const card = h => {
     const hc = habitTodayChecks(h);
     const done = hc.length, reached = done >= h.times, active = habitActiveToday(h), streak = habitStreak(h);
-    const chips = hc.map(c => `<span class="tag b">${c.ts.slice(11)}</span>`).join('');
     const timeTxt = (h.start && h.end) ? (h.start + ' – ' + h.end) : h.start ? ('从 ' + h.start) : h.end ? ('至 ' + h.end) : '不限时间';
     return `<div class="card ${active ? '' : 'habit-off'}">
       <div class="row" style="justify-content:space-between">
@@ -649,8 +648,7 @@ function render_habit() {
       ${active ? `<div class="row" style="justify-content:space-between;margin-top:8px">
           <span class="tag ${reached ? 'g' : 'p'}">${done} / ${h.times} 次</span>
           <button class="btn sm ${reached ? 'ghost' : 'p'}" onclick="checkHabit('${h.id}')">${reached ? '已达标 🎉' : '打卡 ➕'}</button>
-        </div>
-        ${chips ? `<div class="row mt" style="flex-wrap:wrap;gap:4px">${chips}</div>` : ''}`
+        </div>`
       : `<div class="li-sub" style="margin-top:8px">😴 今天是该习惯的休息日</div>`}
     </div>`;
   };
@@ -684,6 +682,7 @@ function render_habit() {
     </div>
   </div>
   ${habits.length ? habits.map(card).join('') : '<div class="empty">还没有习惯，先添加一个吧～</div>'}
+  ${habits.length ? render_habitLog() : ''}
   `;
 }
 function saveHabit() {
@@ -713,6 +712,79 @@ function delHabit(id) {
   store.s('habits', store.g('habits', []).filter(x => x.id !== id));
   store.s('habitChecks', store.g('habitChecks', []).filter(c => c.habitId !== id));
   render();
+}
+
+/* ============ 打卡记录后台查询 ============ */
+function habitLogFiltered() {
+  const habits = store.g('habits', []);
+  const checks = store.g('habitChecks', []);
+  const f = S.habitLog || {};
+  let list = checks.map(c => {
+    const h = habits.find(x => x.id === c.habitId);
+    return { id: c.id, habitId: c.habitId, name: h ? h.name : '（已删除习惯）', date: c.ts.slice(0, 10), time: c.ts.slice(11), ts: c.ts };
+  });
+  if (f.habit && f.habit !== 'all') list = list.filter(x => x.habitId === f.habit);
+  if (f.from) list = list.filter(x => x.date >= f.from);
+  if (f.to) list = list.filter(x => x.date <= f.to);
+  if (f.kw) list = list.filter(x => x.name.indexOf(f.kw) >= 0);
+  list.sort((a, b) => a.ts < b.ts ? 1 : -1);
+  return list;
+}
+function render_habitLog() {
+  const checks = store.g('habitChecks', []);
+  const habits = store.g('habits', []);
+  const f = S.habitLog || {};
+  const list = habitLogFiltered();
+  const days = new Set(list.map(x => x.date)).size;
+  const habitOpts = habits.map(h => `<option value="${h.id}" ${f.habit === h.id ? 'selected' : ''}>${esc(h.name)}</option>`).join('');
+  const rows = list.length ? list.map(x => `<div class="log-row">
+      <span class="log-date">${x.date}</span>
+      <span class="log-name">${esc(x.name)}</span>
+      <span class="log-time">${x.time}</span>
+      <button class="btn sm warn" onclick="delHabitLog('${x.id}')">删</button>
+    </div>`).join('')
+    : '<div class="empty">没有匹配的打卡记录</div>';
+  return `
+  <div class="card">
+    <details class="log-box" ${f.open ? 'open' : ''} ontoggle="S.habitLog.open=this.open">
+      <summary class="log-sum">📜 打卡记录 · 后台查询 <span class="li-sub">（共 ${checks.length} 条 · 点开筛选查看）</span></summary>
+      <div class="row mt" style="flex-wrap:wrap;gap:6px">
+        <select id="hlHabit" onchange="S.habitLog.habit=this.value;render()">
+          <option value="all" ${f.habit === 'all' ? 'selected' : ''}>全部习惯</option>${habitOpts}
+        </select>
+        <label class="li-sub">起<input type="date" id="hlFrom" value="${f.from}" onchange="S.habitLog.from=this.value;render()"></label>
+        <label class="li-sub">止<input type="date" id="hlTo" value="${f.to}" onchange="S.habitLog.to=this.value;render()"></label>
+        <input class="grow" id="hlKw" placeholder="搜索习惯名" value="${esc(f.kw || '')}">
+        <button class="btn sm" onclick="S.habitLog.kw=document.getElementById('hlKw').value.trim();render()">查询</button>
+        <button class="btn sm ghost" onclick="S.habitLog={habit:'all',from:'',to:'',kw:'',open:true};render()">重置</button>
+      </div>
+      <div class="row mt" style="flex-wrap:wrap;gap:10px;align-items:center">
+        <span class="li-sub">筛选结果：<b>${list.length}</b> 条 · 覆盖 <b>${days}</b> 天</span>
+        ${list.length ? `<button class="btn sm ghost" onclick="exportHabitLog()">导出记录 ↓</button>` : ''}
+      </div>
+      <div class="log-list mt">${rows}</div>
+    </details>
+  </div>`;
+}
+function delHabitLog(id) {
+  if (!confirm('删除这条打卡记录？')) return;
+  store.s('habitChecks', store.g('habitChecks', []).filter(c => c.id !== id));
+  render();
+}
+function exportHabitLog() {
+  const list = habitLogFiltered();
+  const lines = ['习惯打卡记录导出', '生成时间：' + nowISO(), ''];
+  let cur = '';
+  list.forEach(x => {
+    if (x.date !== cur) { cur = x.date; lines.push(''); lines.push('【' + x.date + '】'); }
+    lines.push('  ' + x.time + '  ' + x.name);
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'habit-log-' + today() + '.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
 }
 
 /* ============ 开屏 & 初始化 ============ */

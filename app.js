@@ -40,7 +40,6 @@ const PAGES = [
   { id: 'calendar', ic: '📅', nm: '日程日历' },
   { id: 'express', ic: '💬', nm: '表达能力' },
   { id: 'inspire', ic: '💡', nm: '灵感补给站' },
-  { id: 'foreign', ic: '🌐', nm: '外语学习' },
   { id: 'pet', ic: '🐱', nm: '宠物记录' },
   { id: 'finance', ic: '💰', nm: '理财计划' },
   { id: 'clip', ic: '🎬', nm: '剪辑创作' },
@@ -49,9 +48,9 @@ const PAGES = [
   { id: 'monthly', ic: '🌙', nm: '月复盘' }
 ];
 /* 页面临时状态 */
-const S = { engTab: 'speak', planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', cdEdit: null, repayEdit: null, repayPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all', ledTab: 'main', calTab: 'main',
-  /* 灵感补给站 / 表达 / 外语 临时态 */
-  quoteIdx: 0, insTab: 'good', expTab: 'daily', forTab: 'en', krLevel: '初级', krSub: 'forty', jpSub: 'fifty', krSpokenTab: 'daily', jpLevel: '初级', jpSpokenTab: 'daily', krVocabTab: 'lib', jpVocabTab: 'lib', enVocabTab: 'lib', chatLog: [] };
+const S = { planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', cdEdit: null, repayEdit: null, repayPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all', ledTab: 'main', calTab: 'main',
+  /* 灵感补给站 / 表达 临时态 */
+  quoteIdx: 0, insTab: 'good', expTab: 'daily' };
 
 /* ============ 开屏页数据 ============ */
 const QUOTES = [
@@ -81,7 +80,6 @@ const TOP = [
   { id: 'calendar', ic: 'calendar', nm: '日程日历' },
   { id: 'express', ic: 'express', nm: '表达能力' },
   { id: 'inspire', ic: 'inspire', nm: '灵感补给站' },
-  { id: 'foreign', ic: 'foreign', nm: '外语学习' },
   { id: 'pet', ic: 'pet', nm: '宠物记录' },
   { id: 'finance', ic: 'finance', nm: '理财计划' },
   { id: 'clip', ic: 'clip', nm: '剪辑创作' },
