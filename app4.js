@@ -261,16 +261,35 @@ function loanSection() {
   const totalOf = p => parseFloat(p.total) || 0;
   const monthlyOf = p => parseFloat(p.monthly) || 0;
   const monthsOf = p => parseInt(p.months) || 0;
+  const freqOf = p => p.freqLoan || 'monthly';
+  const periodLabel = p => freqOf(p) === 'yearly' ? '年供' : '月供';
   const repayOf = p => monthlyOf(p) * monthsOf(p);
   const interestOf = p => Math.max(0, repayOf(p) - totalOf(p));
   const edit = S.loanEdit ? plans.find(x => x.id === S.loanEdit) : null;
+  const y = new Date().getFullYear();
   const mRecs = recs.filter(r => r.date.slice(0, 7) === m).sort((a, b) => b.date.localeCompare(a.date));
   const totalAll = plans.reduce((a, p) => a + totalOf(p), 0);
   const interestAll = plans.reduce((a, p) => a + interestOf(p), 0);
   const repayAll = plans.reduce((a, p) => a + repayOf(p), 0);
   const paidAll = recs.reduce((a, r) => a + recAmt(r), 0);
   const remainAll = Math.max(0, repayAll - paidAll);
-  const unpaid = plans.map(p => ({ p, r: repayNext(p), mp: planMonthPaid(p) }))
+  const loanNext = p => {
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    if (freqOf(p) === 'yearly') {
+      const mo = Math.min(12, Math.max(1, +p.payDay || 1)) - 1;
+      let yr = now.getFullYear(); let t = new Date(yr, mo, 1);
+      if (t < now) { yr++; t = new Date(yr, mo, 1); }
+      return { date: t, days: Math.round((t - now) / 864e5) };
+    }
+    const pd = Math.min(28, Math.max(1, +p.payDay || 1));
+    let yy = now.getFullYear(), mo = now.getMonth(); let t = new Date(yy, mo, pd);
+    if (t < now) { mo++; if (mo > 11) { mo = 0; yy++; } t = new Date(yy, mo, pd); }
+    return { date: t, days: Math.round((t - now) / 864e5) };
+  };
+  const loanPeriodPaid = p => freqOf(p) === 'yearly'
+    ? recs.filter(r => r.planId === p.id && r.date.slice(0, 4) === String(y)).reduce((a, r) => a + recAmt(r), 0)
+    : planMonthPaid(p);
+  const unpaid = plans.map(p => ({ p, r: loanNext(p), mp: loanPeriodPaid(p) }))
     .filter(x => monthlyOf(x.p) - x.mp > 0.001)
     .sort((a, b) => a.r.days - b.r.days);
   const soonest = unpaid[0] || null;
@@ -281,19 +300,20 @@ function loanSection() {
     <div class="stat"><div class="num">¥${repayAll.toFixed(0)}</div><div class="lb">总应还</div></div>
     <div class="stat"><div class="num" style="color:var(--green-d)">¥${paidAll.toFixed(0)}</div><div class="lb">已还金额</div></div>
   </div>`;
+  const periodWord = p => freqOf(p) === 'yearly' ? '本年' : '本月';
   const remind = soonest ? (soonest.r.days === 0
-    ? `<div class="repay-alert">🔔 今天也要记啦：${esc(soonest.p.name)} · 本月应记 ¥${monthlyOf(soonest.p).toFixed(0)}（已记 ¥${soonest.mp.toFixed(0)}）</div>`
+    ? `<div class="repay-alert">🔔 今天也要记啦：${esc(soonest.p.name)} · ${periodWord(soonest.p)}应记 ¥${monthlyOf(soonest.p).toFixed(0)}（已记 ¥${soonest.mp.toFixed(0)}）</div>`
     : `<div class="repay-alert">🔔 即将记录：${esc(soonest.p.name)} · 下次 ${soonest.r.date.getFullYear()}-${pad(soonest.r.date.getMonth() + 1)}-${pad(soonest.r.date.getDate())} · 还有 ${soonest.r.days} 天（已记 ¥${soonest.mp.toFixed(0)}/${monthlyOf(soonest.p).toFixed(0)}）</div>`)
-    : (plans.length ? '<div class="repay-alert ok">✅ 本月记录提醒已全部结清，辛苦啦 🎉</div>' : '<div class="repay-alert ok">暂无其他计划，添加后这里会在每月记账日前提醒你 🗓️</div>');
+    : (plans.length ? '<div class="repay-alert ok">✅ 记录提醒已全部结清，辛苦啦 🎉</div>' : '<div class="repay-alert ok">暂无其他计划，添加后这里会在每期日前提醒你 🗓️</div>');
   const planCard = p => {
     const total = totalOf(p), monthly = monthlyOf(p), months = monthsOf(p);
     const repay = repayOf(p), interest = interestOf(p);
     const paid = planPaid(p), count = planCount(p);
     const remain = Math.max(0, repay - paid);
     const pct = repay ? Math.round(paid / repay * 100) : 0;
-    const r = repayNext(p);
-    const mp = planMonthPaid(p);
-    const due = mp > 0.001 ? `本月已记 ¥${mp.toFixed(0)} ✅` : (r.days === 0 ? '今天应记 🔔' : (r.days <= 3 ? `还有 ${r.days} 天 ⏰` : `还有 ${r.days} 天`));
+    const r = loanNext(p);
+    const mp = loanPeriodPaid(p);
+    const due = mp > 0.001 ? `${periodWord(p)}已记 ¥${mp.toFixed(0)} ✅` : (r.days === 0 ? '今天应记 🔔' : (r.days <= 3 ? `还有 ${r.days} 天 ⏰` : `还有 ${r.days} 天`));
     return `<div class="card repay-card">
       <div class="row" style="justify-content:space-between">
         <div class="li-main" style="font-weight:700">${esc(p.name)}</div>
@@ -305,12 +325,12 @@ function loanSection() {
       ${p.note ? `<div class="li-sub">${esc(p.note)}</div>` : ''}
       <div class="row" style="justify-content:space-between;margin-top:6px">
         <span class="li-sub">本金 ¥${total.toFixed(0)}</span>
-        <span class="li-sub">月供 ¥${monthly.toFixed(0)}</span>
-        <span class="li-sub">${months} 期</span>
+        <span class="li-sub">${periodLabel(p)} ¥${monthly.toFixed(0)}</span>
+        <span class="li-sub">${months} ${freqOf(p) === 'yearly' ? '年' : '期'}</span>
       </div>
-      <div class="li-sub" style="margin-top:2px;color:#d96a8f">利息总额 ¥${interest.toFixed(0)}（月供×${months}期 − 本金，自动）</div>
+      <div class="li-sub" style="margin-top:2px;color:#d96a8f">利息总额 ¥${interest.toFixed(0)}（每期¥${monthly.toFixed(0)}×${months}期 − 本金，自动）</div>
       <div style="margin:6px 0"><div class="row" style="justify-content:space-between"><span class="li-sub">已还 ¥${paid.toFixed(0)} / 总应还 ¥${repay.toFixed(0)}</span><span class="li-sub">${pct}%</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
-      <div class="li-sub">已还 ${count} 期 / 共 ${months} 期</div>
+      <div class="li-sub">已还 ${count} ${freqOf(p) === 'yearly' ? '年' : '期'} / 共 ${months} ${freqOf(p) === 'yearly' ? '年' : '期'}</div>
       <div class="row" style="justify-content:space-between;margin-top:6px">
         <span class="tag ${r.days <= 3 ? 'p' : 'b'}">${due}</span>
         <button class="btn sm p" onclick="S.loanPlan='${p.id}';render()">记一笔</button>
@@ -328,16 +348,20 @@ function loanSection() {
         <input type="number" id="lpTotal" placeholder="本金总额" value="${edit ? edit.total : ''}" style="width:110px">
       </div>
       <div class="row mt">
-        <input type="number" id="lpMonthly" placeholder="月供 ¥" value="${edit ? edit.monthly : ''}" style="width:100px">
+        <select id="lpFreq">
+          <option value="monthly" ${edit && freqOf(edit) !== 'yearly' ? 'selected' : ''}>月供</option>
+          <option value="yearly" ${edit && freqOf(edit) === 'yearly' ? 'selected' : ''}>年供</option>
+        </select>
+        <input type="number" id="lpMonthly" placeholder="每期 ¥" value="${edit ? edit.monthly : ''}" style="width:100px">
         <input type="number" id="lpMonths" placeholder="还几期" value="${edit ? edit.months : ''}" style="width:80px">
-        <label class="row" style="gap:4px;font-size:13px">每月<input type="number" id="lpPayDay" min="1" max="28" value="${edit ? (edit.payDay || 1) : 1}" style="width:54px">日</label>
+        <label class="row" style="gap:4px;font-size:13px">${edit && freqOf(edit) === 'yearly' ? '每年' : '每月'}<input type="number" id="lpPayDay" min="1" max="${edit && freqOf(edit) === 'yearly' ? 12 : 28}" value="${edit ? (edit.payDay || 1) : 1}" style="width:54px">${edit && freqOf(edit) === 'yearly' ? '月' : '日'}</label>
       </div>
       <div class="row mt">
         <input class="grow" id="lpNote" placeholder="备注(选填)" value="${edit ? esc(edit.note || '') : ''}">
         <button class="btn ${edit ? 'pink' : ''}" onclick="saveLoanPlan()">${edit ? '保存修改 ✔' : '添加计划 ➕'}</button>
         ${edit ? '<button class="btn sm ghost" onclick="S.loanEdit=null;render()">取消</button>' : ''}
       </div>
-      ${edit ? `<div class="li-sub" style="margin-top:6px;color:#d96a8f">利息总额（自动）= 月供×${edit.months || 0}期 − 本金 = ¥${Math.max(0, (parseFloat(edit.monthly) || 0) * (parseInt(edit.months) || 0) - (parseFloat(edit.total) || 0)).toFixed(0)}</div>` : ''}
+      ${edit ? `<div class="li-sub" style="margin-top:6px;color:#d96a8f">利息总额（自动）= 每期¥${parseFloat(edit.monthly) || 0}×${edit.months || 0}期 − 本金 = ¥${Math.max(0, (parseFloat(edit.monthly) || 0) * (parseInt(edit.months) || 0) - (parseFloat(edit.total) || 0)).toFixed(0)}</div>` : ''}
     </div>
     ${S.loanPlan ? `<div class="card"><h3>💸 记一笔（每期还款）</h3>
       <div class="row">
@@ -359,7 +383,8 @@ function loanSection() {
 }
 function saveLoanPlan() {
   const name = $('#lpName').value.trim(); if (!name) return;
-  const obj = { name, total: +$('#lpTotal').value || 0, monthly: +$('#lpMonthly').value || 0, months: +$('#lpMonths').value || 0, payDay: Math.min(28, Math.max(1, +$('#lpPayDay').value || 1)), note: $('#lpNote').value.trim() };
+  const freq = $('#lpFreq').value;
+  const obj = { name, total: +$('#lpTotal').value || 0, monthly: +$('#lpMonthly').value || 0, months: +$('#lpMonths').value || 0, freqLoan: freq, payDay: Math.min(freq === 'yearly' ? 12 : 28, Math.max(1, +$('#lpPayDay').value || 1)), note: $('#lpNote').value.trim() };
   const all = store.g('loanPlans', []);
   if (S.loanEdit) { const i = all.findIndex(x => x.id === S.loanEdit); if (i >= 0) all[i] = { ...all[i], ...obj }; S.loanEdit = null; }
   else all.push({ id: uid(), ...obj });
