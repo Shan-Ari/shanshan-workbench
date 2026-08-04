@@ -634,7 +634,7 @@ function render_habit() {
       <div class="row" style="justify-content:space-between">
         <div class="li-main" style="font-weight:700">${esc(h.name)}</div>
         <div class="row" style="gap:6px">
-          <button class="btn sm ghost" onclick="S.habitEdit='${h.id}';render()">改</button>
+          <button class="btn sm ghost" onclick="S.habitTab='add';S.habitEdit='${h.id}';render()">改</button>
           <button class="btn sm warn" onclick="delHabit('${h.id}')">删</button>
         </div>
       </div>
@@ -657,32 +657,37 @@ function render_habit() {
   return `
   <div class="page-title">🌿 习惯打卡</div>
   <div class="page-sub">把好习惯变成每天的仪式感 · 打卡即记录时间点</div>
-  <div class="card"><div class="stat-grid g2">
-    <div class="stat"><div class="num">${doneToday}/${activeCnt}</div><div class="lb">今日习惯达成</div></div>
-    <div class="stat"><div class="num pk">${checkedToday}</div><div class="lb">今日打卡次数</div></div>
-    <div class="stat"><div class="num">${habits.length}</div><div class="lb">习惯总数</div></div>
-    <div class="stat"><div class="num" style="color:var(--blue)">${activeCnt}</div><div class="lb">今日需打卡</div></div>
-  </div></div>
-  ${render_heatmap()}
-  <div class="card"><h3>➕ ${edit ? '修改习惯' : '添加习惯'}</h3>
-    <div class="row"><input class="grow" id="hbName" placeholder="习惯名称，如 早睡 / 早起 / 喝水 / 背单词 / 学习" value="${edit ? esc(edit.name) : ''}"></div>
-    <div class="row mt">
-      <label class="li-sub">开始(选填)<input type="time" id="hbStart" value="${edit ? edit.start : ''}"></label>
-      <label class="li-sub">结束(选填)<input type="time" id="hbEnd" value="${edit ? edit.end : ''}"></label>
-      <select id="hbFreq" onchange="document.getElementById('hbWeekBox').style.display=this.value==='weekly'?'':'none'">${FREQS.map(f => `<option value="${f[0]}" ${edit && edit.freq === f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}</select>
-      <label class="li-sub">次数<input type="number" id="hbTimes" value="${edit ? edit.times : 1}" min="1" style="width:54px">次/日</label>
-    </div>
-    <div class="row mt" id="hbWeekBox" style="display:${showWeek ? '' : 'none'}">
-      ${WD_SHORT.map((w, i) => `<label class="li-sub" style="margin-right:8px"><input type="checkbox" class="hbDay" value="${i}" ${dayChecks.includes(i) ? 'checked' : ''}>周${w}</label>`).join('')}
-    </div>
-    <div class="row mt"><input class="grow" id="hbNote" placeholder="备注(选填)，如 早睡用于记录实际入睡时间" value="${edit ? esc(edit.note || '') : ''}"></div>
-    <div class="row mt">
-      <button class="btn ${edit ? 'pink' : ''}" onclick="saveHabit()">${edit ? '保存修改 ✔' : '添加 ➕'}</button>
-      ${edit ? '<button class="btn sm ghost" onclick="S.habitEdit=null;render()">取消</button>' : ''}
-    </div>
+  <div class="subtabs">
+    <button class="btn ${S.habitTab==='check' ? 'pink' : 'ghost'}" onclick="S.habitTab='check';S.habitEdit=null;render()">📋 打卡</button>
+    <button class="btn ${S.habitTab==='add' ? 'pink' : 'ghost'}" onclick="S.habitTab='add';S.habitEdit=null;render()">➕ 添加习惯</button>
   </div>
-  ${habits.length ? habits.map(card).join('') : '<div class="empty">还没有习惯，先添加一个吧～</div>'}
-  ${habits.length ? render_habitLog() : ''}
+  ${S.habitTab==='add'
+    ? `<div class="card"><h3>${edit ? '修改习惯' : '添加习惯'}</h3>
+        <div class="row"><input class="grow" id="hbName" placeholder="习惯名称，如 早睡 / 早起 / 喝水 / 背单词 / 学习" value="${edit ? esc(edit.name) : ''}"></div>
+        <div class="row mt">
+          <label class="li-sub">开始(选填)<input type="time" id="hbStart" value="${edit ? edit.start : ''}"></label>
+          <label class="li-sub">结束(选填)<input type="time" id="hbEnd" value="${edit ? edit.end : ''}"></label>
+          <select id="hbFreq" onchange="document.getElementById('hbWeekBox').style.display=this.value==='weekly'?'':'none'">${FREQS.map(f => `<option value="${f[0]}" ${edit && edit.freq === f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}</select>
+          <label class="li-sub">次数<input type="number" id="hbTimes" value="${edit ? edit.times : 1}" min="1" style="width:54px">次/日</label>
+        </div>
+        <div class="row mt" id="hbWeekBox" style="display:${showWeek ? '' : 'none'}">
+          ${WD_SHORT.map((w, i) => `<label class="li-sub" style="margin-right:8px"><input type="checkbox" class="hbDay" value="${i}" ${dayChecks.includes(i) ? 'checked' : ''}>周${w}</label>`).join('')}
+        </div>
+        <div class="row mt"><input class="grow" id="hbNote" placeholder="备注(选填)，如 早睡用于记录实际入睡时间" value="${edit ? esc(edit.note || '') : ''}"></div>
+        <div class="row mt">
+          <button class="btn ${edit ? 'pink' : ''}" onclick="saveHabit()">${edit ? '保存修改 ✔' : '添加 ➕'}</button>
+          ${edit ? '<button class="btn sm ghost" onclick="S.habitEdit=null;S.habitTab=\'check\';render()">取消</button>' : ''}
+        </div>
+      </div>`
+    : `${render_heatmap()}
+       <div class="card"><div class="stat-grid g2">
+         <div class="stat"><div class="num">${doneToday}/${activeCnt}</div><div class="lb">今日习惯达成</div></div>
+         <div class="stat"><div class="num pk">${checkedToday}</div><div class="lb">今日打卡次数</div></div>
+         <div class="stat"><div class="num">${habits.length}</div><div class="lb">习惯总数</div></div>
+         <div class="stat"><div class="num" style="color:var(--blue)">${activeCnt}</div><div class="lb">今日需打卡</div></div>
+       </div></div>
+       ${habits.length ? habits.map(card).join('') : '<div class="empty">还没有习惯，先去「➕ 添加习惯」建一个吧～</div>'}
+       ${habits.length ? render_habitLog() : ''}`}
   `;
 }
 function saveHabit() {
@@ -700,7 +705,7 @@ function saveHabit() {
     if (i >= 0) all[i] = { ...all[i], name, start, end, freq, times, days, note };
     S.habitEdit = null;
   } else all.push({ id: uid(), name, start, end, freq, times, days, note });
-  store.s('habits', all); render();
+  store.s('habits', all); S.habitTab = 'check'; render();
 }
 function checkHabit(id) {
   const arr = store.g('habitChecks', []);
