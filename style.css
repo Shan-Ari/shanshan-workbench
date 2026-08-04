@@ -182,18 +182,6 @@ input[type=date],input[type=month],input[type=time]{width:auto;}
 .li-main{flex:1;min-width:0;word-break:break-all;}
 .li-sub{font-size:12px;color:var(--muted);margin-top:2px;word-break:break-all;white-space:pre-wrap;}
 .empty{color:var(--muted);font-size:13px;text-align:center;padding:14px 0;}
-/* ============ 词库文件夹（折叠） ============ */
-.folder{border:1px solid var(--line);border-radius:14px;background:var(--card);margin-top:12px;overflow:hidden;}
-.folder > summary{list-style:none;cursor:pointer;}
-.folder > summary::-webkit-details-marker{display:none;}
-.folder-sum{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;font-weight:700;font-size:15px;user-select:none;}
-.folder-sum:hover{background:var(--card2);}
-.folder-sum .chev{display:inline-block;transition:transform .2s;color:var(--muted);margin-left:4px;}
-.folder[open] .folder-sum .chev{transform:rotate(180deg);}
-.folder-body{padding:0 16px 14px;}
-.folder-list{max-height:300px;overflow-y:auto;margin-top:4px;}
-.folder-group{margin-bottom:6px;}
-.folder-group-h{font-size:12px;font-weight:700;color:var(--blue-d);padding:6px 2px;border-bottom:1px dashed var(--line);margin-bottom:4px;}
 /* 标签 */
 .tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;margin-right:4px;}
 .tag.b{background:var(--blue-l);color:var(--blue-d);}

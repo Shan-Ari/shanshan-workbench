@@ -53,7 +53,7 @@ function render_pet() {
       <div class="card"><h3>猫砂 / 猫粮 记录</h3>
         <div class="row"><input type="date" id="ptDate" value="${today()}"><select id="ptItem"><option>猫砂</option><option>猫粮</option></select><select id="ptAct"><option value="in">购买(进账)</option><option value="out">使用(消耗)</option></select></div>
         <div class="row mt"><input id="ptQty" type="number" min="0" step="0.1" placeholder="数量" style="width:78px"><input id="ptUnit" placeholder="单位(kg/包/个)" style="width:108px"><input class="grow" id="ptNote" placeholder="品牌/价格等(选填)"><button class="btn" onclick="addPet('supply')">记录 ➕</button></div>
-        ${p.supply.slice().reverse().map(x => `<div class="list-item"><div class="li-main">${x.date} · <span class="tag b">${x.item}</span> <span class="tag ${x.act === 'out' || (x.kind && x.kind !== '购买') ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('supply', x.id)}</div>`).join('') || '<div class="empty">暂无记录</div>'}</div>`;
+        ${p.supply.slice().reverse().map(x => `<div class="list-item"><div class="li-main">${x.date} · <span class="tag b">${x.item}</span> <span class="tag ${x.act === 'out' || (x.kind && x.kind !== '购买') ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('supply', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('supply','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无记录</div>'}</div>`;
   } else {
     const stock = petStockSum(p.snack, 'name');
     const snackCards = Object.keys(stock).map(n => {
@@ -68,7 +68,7 @@ function render_pet() {
       <div class="card"><h3>零食记录</h3>
         <div class="row"><input type="date" id="ptDate" value="${today()}"><input class="grow" id="ptName" placeholder="零食名称"></div>
         <div class="row mt"><select id="ptAct"><option value="in">买入(进账)</option><option value="out">消耗</option></select><input id="ptQty" type="number" min="0" step="0.1" placeholder="数量" style="width:78px"><input id="ptUnit" placeholder="单位(包/个)" style="width:98px"><input class="grow" id="ptNote" placeholder="备注(选填)"><button class="btn" onclick="addPet('snack')">记录 ➕</button></div>
-        ${p.snack.slice().reverse().map(x => `<div class="list-item"><div class="li-main"><b>${esc(x.name)}</b> · <span class="tag ${x.act === 'out' ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('snack', x.id)}</div>`).join('') || '<div class="empty">暂无零食记录</div>'}</div>`;
+        ${p.snack.slice().reverse().map(x => `<div class="list-item"><div class="li-main"><b>${esc(x.name)}</b> · <span class="tag ${x.act === 'out' ? 'p' : 'g'}">${petQtyStr(x)}</span>${x.note ? ' · ' + esc(x.note) : ''}</div>${del('snack', x.id)}<button class="btn sm" style="margin-left:5px" onclick="quickUse('snack','${x.id}')">消耗</button></div>`).join('') || '<div class="empty">暂无零食记录</div>'}</div>`;
   }
   return `<div class="page-title">🐱 宠物记录</div><div class="page-sub">毛孩子的日常，都值得被记录</div>
   <div class="tabs">${tabs.map(t => `<div class="tab ${S.petTab === t[0] ? 'active' : ''}" onclick="S.petTab='${t[0]}';render()">${t[1]}</div>`).join('')}</div>${body}`;
@@ -91,6 +91,20 @@ function addPet(k) {
   p[k].push(rec); p[k].sort((a, b) => a.date < b.date ? -1 : 1); store.s('pet', p); render();
 }
 function delPet(k, id) { const p = petData(); p[k] = p[k].filter(x => x.id !== id); store.s('pet', p); render(); }
+function quickUse(k, id) {
+  const p = petData();
+  const rec = p[k].find(x => x.id === id);
+  if (!rec) return;
+  const nm = k === 'supply' ? rec.item : rec.name;
+  const unit = rec.unit || '份';
+  const v = prompt('记录「' + nm + '」的一次消耗数量（单位：' + unit + '）', '1');
+  if (v == null) return;
+  const q = Number(v);
+  if (!(q > 0)) { if (v.trim() !== '') alert('请输入大于 0 的数量'); return; }
+  const n = { id: uid(), date: today(), note: '快速消耗', act: 'out', qty: q, unit: rec.unit || '' };
+  if (k === 'supply') n.item = rec.item; else n.name = rec.name;
+  p[k].push(n); p[k].sort((a, b) => a.date < b.date ? -1 : 1); store.s('pet', p); render();
+}
 
 /* ============ 剪辑创作 ============ */
 function clipData() { return store.g('clip', { notes: [], tuts: [], assets: [], pits: [], works: [] }); }
