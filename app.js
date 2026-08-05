@@ -50,7 +50,7 @@ const PAGES = [
 /* 页面临时状态 */
 const S = { planDate: today(), planEdit: null, noteEdit: null, sentEdit: null, poemView: null, ledMonth: thisMonth(), calY: new Date().getFullYear(), calM: new Date().getMonth(), calSel: today(), petTab: 'bath', clipTab: 'notes', petSupplyLog: 'all', petSnackLog: 'all', cdEdit: null, repayEdit: null, repayPlan: null, loanEdit: null, loanPlan: null, acctEdit: null, habitEdit: null, habitHeat: 'all', habitTab: 'check', habitLog: { habit: 'all', from: '', to: '', kw: '', open: false }, ledTab: 'main', calTab: 'main',
   /* 灵感补给站 / 表达 临时态 */
-  quoteIdx: 0, insTab: 'good', expTab: 'daily' };
+  quoteIdx: 0, insTab: 'good', insSeed: null, insAll: false, expTab: 'daily' };
 
 /* ============ 开屏页数据 ============ */
 const QUOTES = [
@@ -198,12 +198,12 @@ function setWaterGoal() {
   if (v < 200) { alert('目标建议不少于 200ml'); return; }
   store.s('waterGoal', v); render();
 }
-function addWater(ml, tm) {
+function addWater(ml, tm, type, note) {
   const amount = +ml || 0; if (!amount) return;
   const now = new Date();
   const time = tm || (pad(now.getHours()) + ':' + pad(now.getMinutes()));
   const arr = waterList();
-  arr.push({ id: uid(), date: today(), time, ml: amount });
+  arr.push({ id: uid(), date: today(), time, ml: amount, type: type || '水', note: (note || '').trim() });
   store.s('water', arr);
   const ck = store.g('waterCk', []); if (!ck.includes(today())) { ck.push(today()); store.s('waterCk', ck); }
   render();
@@ -211,7 +211,7 @@ function addWater(ml, tm) {
 function addWaterCustom() {
   const ml = +$('#wtMl').value || 0;
   if (!ml) { alert('请填写喝水量(ml)'); return; }
-  addWater(ml, $('#wtTime').value || null);
+  addWater(ml, $('#wtTime').value || null, S.waterType || '水', $('#wtNote').value || '');
 }
 function delWater(id) { store.s('water', waterList().filter(w => w.id !== id)); render(); }
 function waterFrag() {
@@ -239,12 +239,18 @@ function waterFrag() {
     <div class="wt-track"><div class="wt-fill" style="width:${pct}%"></div></div>
     <div class="li-sub" style="text-align:center;margin-top:6px">${total >= goal ? '今日目标已达成，好棒 🎉' : '还差 ' + (goal - total) + ' ml，加油喝水呀 ~'} · 已喝 ${td.length} 次</div>
     <div class="wt-quick">
-      ${[100, 200, 300, 500].map(v => `<button class="btn sm ghost" onclick="addWater(${v})">+${v}ml</button>`).join('')}
+      ${[100, 200, 300, 500].map(v => `<button class="btn sm ghost" onclick="addWater(${v}, null, S.waterType || '水')">+${v}ml</button>`).join('')}
     </div>
-    <div class="row mt">
+    <div class="row mt" style="flex-wrap:wrap">
+      <select id="wtType" class="grow" onchange="S.waterType=this.value">
+        ${['水','咖啡','茶','奶茶','饮料','果汁','牛奶'].map(o => `<option value="${o}" ${(S.waterType||'水')===o?'selected':''}>${o}</option>`).join('')}
+      </select>
       <input type="time" id="wtTime" value="${nowT}" style="max-width:120px">
       <input type="number" class="grow" id="wtMl" placeholder="喝水量 (ml)">
       <button class="btn" onclick="addWaterCustom()">记录 ➕</button>
+    </div>
+    <div class="row mt">
+      <input id="wtNote" class="grow" placeholder="备注（可选，如：冰美式无糖 / 给同事带的）">
     </div>
     <div class="row mt">
       <span class="li-sub">每日目标</span>
@@ -252,7 +258,7 @@ function waterFrag() {
       <span class="li-sub">ml</span>
       <button class="btn sm ghost" onclick="setWaterGoal()">保存目标</button>
     </div>
-    ${td.length ? `<div style="margin-top:8px">${td.map(w => `<div class="list-item"><div class="li-main"><span class="tag b">${w.time}</span> ${w.ml} ml</div><button class="btn sm warn" onclick="delWater('${w.id}')">删</button></div>`).join('')}</div>` : '<div class="empty">今天还没喝水记录，先来一杯吧 🥛</div>'}
+    ${td.length ? `<div style="margin-top:8px">${td.map(w => `<div class="list-item"><div class="li-main"><span class="tag b">${esc(w.time)}</span> <span class="tag">${esc(w.type||'水')}</span> ${w.ml} ml${w.note? ' · '+esc(w.note):''}</div><button class="btn sm warn" onclick="delWater('${w.id}')">删</button></div>`).join('')}</div>` : '<div class="empty">今天还没喝水记录，先来一杯吧 🥛</div>'}
     <div class="wt-week">${bars}</div>
     <div class="li-sub" style="text-align:center">近 7 日日均 <b>${avg7}</b> ml · 达标 <b>${hit7}</b> 天 · 连续打卡 <b>${streakOf(store.g('waterCk', []))}</b> 天</div>
   </div>`;
