@@ -45,6 +45,18 @@
 .rb-quest.on .rb-qtxt{color:#3a7a5a;text-decoration:line-through;text-decoration-color:#b8d8c8}
 .rb-toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:rgba(90,74,74,.92);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;max-width:84%;text-align:center;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 .rb-toast.hidden{display:none}
+.rb-caret{margin-left:auto;color:#b8a8a8;font-size:13px;transition:transform .2s;flex:none}
+.rb-day.collapsed .rb-caret{transform:rotate(-90deg)}
+.rb-summary{font-size:12px;color:#9a8a8a;background:#faf6ef;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px}
+.rb-summary .rb-sp{flex:1}
+.rb-mini{display:flex;gap:3px;flex-wrap:wrap}
+.rb-dot{width:9px;height:9px;border-radius:50%;background:#e3d8c8}
+.rb-dot.on{background:#B8E0D2}
+.rb-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.rb-photo{position:relative;width:74px;height:74px;border-radius:10px;overflow:hidden;border:1px solid #eee;cursor:pointer;background:#faf6ef}
+.rb-photo img{width:100%;height:100%;object-fit:cover}
+.rb-photo .rb-x{position:absolute;top:2px;right:2px;background:rgba(90,74,74,.8);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:18px;cursor:pointer;padding:0}
+.rb-phbtn{margin-top:10px}
 `;
     document.head.appendChild(s);
   }
@@ -67,7 +79,7 @@
   function rbDefault() {
     return {
       tab: 'habit',
-      habit: { startDate: rbAddDays(today(), 1), totalDays: 50, rules: RB_RULES.map((t, i) => ({ id: 'r' + i, text: t })), days: {} },
+      habit: { startDate: rbAddDays(today(), 1), totalDays: 50, rules: RB_RULES.map((t, i) => ({ id: 'r' + i, text: t })), days: {}, collapsed: {} },
       quests: RB_QUESTS.map((t, i) => ({ id: 'q' + i, text: t, done: false }))
     };
   }
@@ -79,6 +91,16 @@
   function rbComplete(st, i) {
     const day = st.habit.days[i]; if (!day || !day.checks) return false;
     const R = st.habit.rules; return R.length > 0 && R.every(r => day.checks[r.id]);
+  }
+  /* 折叠视图：完成的天默认折叠（collapsed 未设置时跟随完成态）；今日强制展开 */
+  function rbDayCollapsed(st, i) {
+    const c = st.habit.collapsed && st.habit.collapsed[i];
+    if (c === undefined) return rbComplete(st, i);
+    return !!c;
+  }
+  function rbSaveSafe(st) {
+    try { rbSave(st); }
+    catch (e) { alert('保存失败：本地存储空间可能不足（照片过大）。可删除部分照片后重试。'); }
   }
 
   function rbToast(msg) {
@@ -131,16 +153,22 @@
       const isToday = dStr === t, isFuture = dStr > t, complete = rbComplete(st, i);
       const badge = isFuture ? '未到' : complete ? '✓ 完成' : isToday ? '今日待办' : '未完成';
       const bcls = complete ? 'g' : isFuture ? '' : (isToday ? 'y' : 'r');
+      const collapsed = isToday ? false : rbDayCollapsed(st, i);
       let checks = '';
       rules.forEach(r => {
         const on = !!(day.checks && day.checks[r.id]);
         checks += '<div class="rb-chk ' + (on ? 'on' : '') + '" onclick="rbToggleHabit(' + i + ',\'' + r.id + '\')"><span class="rb-box">' + (on ? '✓' : '') + '</span><span class="rb-ct">' + esc(r.text) + '</span></div>';
       });
-      daysHtml += '<div class="card rb-day ' + (isToday ? 'rb-today' : '') + '">' +
-        '<div class="rb-dayhead"><b>Day ' + (i + 1) + '</b><span class="li-sub">' + dStr.slice(5).replace('-', '/') + '</span>' +
-        '<span class="tag ' + bcls + '">' + badge + '</span></div>' +
-        '<div class="rb-checks">' + checks + '</div>' +
-        '<textarea class="rb-note" placeholder="今日记录 / 备注…" onchange="rbNote(' + i + ', this.value)">' + esc(day.note || '') + '</textarea>' +
+      const doneCount = rules.filter(r => day.checks && day.checks[r.id]).length;
+      const dots = rules.map(r => '<span class="rb-dot ' + ((day.checks && day.checks[r.id]) ? 'on' : '') + '"></span>').join('');
+      const noteSnip = (day.note || '').trim();
+      const summary = '<div class="rb-summary"><span class="rb-sp">' + (noteSnip ? '📝 ' + esc(noteSnip.slice(0, 30)) : '已完成 ' + doneCount + ' / ' + rules.length) + '</span>' + dots + '</div>';
+      const body = collapsed ? summary : ('<div class="rb-checks">' + checks + '</div>' +
+        '<textarea class="rb-note" placeholder="今日记录 / 备注…" onchange="rbNote(' + i + ', this.value)">' + esc(day.note || '') + '</textarea>');
+      daysHtml += '<div class="card rb-day ' + (isToday ? 'rb-today ' : '') + (collapsed ? 'collapsed' : '') + '">' +
+        '<div class="rb-dayhead" onclick="rbToggleCollapse(' + i + ')"><b>Day ' + (i + 1) + '</b><span class="li-sub">' + dStr.slice(5).replace('-', '/') + '</span>' +
+        '<span class="tag ' + bcls + '">' + badge + '</span><span class="rb-caret">▾</span></div>' +
+        body +
         '</div>';
     }
 
@@ -167,12 +195,22 @@
     const total = qs.length;
     const left = total - done;
     const pct = total ? Math.round(done / total * 100) : 0;
-    let list = qs.map((q, i) =>
-      '<div class="rb-quest ' + (q.done ? 'on' : '') + '" onclick="rbToggleQuest(' + i + ')">' +
-      '<span class="rb-qbox">' + (q.done ? '✓' : '') + '</span><span class="rb-qnum">' + (i + 1) + '</span>' +
-      '<span class="rb-qtxt" ondblclick="event.stopPropagation();rbEditQuest(' + i + ')">' + esc(q.text) + '</span>' +
-      '<button class="btn sm warn" onclick="event.stopPropagation();rbDelQuest(' + i + ')">✕</button></div>'
-    ).join('');
+    let list = qs.map((q, i) => {
+      const photos = q.photos || [];
+      const thumbs = photos.map((p, pi) =>
+        '<div class="rb-photo" onclick="rbViewPhoto(' + i + ',' + pi + ')"><img src="' + p + '"><button class="rb-x" onclick="event.stopPropagation();rbDelPhoto(' + i + ',' + pi + ')">×</button></div>'
+      ).join('');
+      const photoArea = q.done
+        ? '<div class="rb-photos">' + thumbs +
+          '<label class="rb-photo rb-phbtn" style="display:flex;align-items:center;justify-content:center;font-size:24px;color:#b8a8a8">+<input type="file" accept="image/*" style="display:none" onchange="rbAddPhoto(' + i + ', this)"></label></div>'
+        : '';
+      return '<div class="rb-qwrap">' +
+        '<div class="rb-quest ' + (q.done ? 'on' : '') + '" onclick="rbToggleQuest(' + i + ')">' +
+        '<span class="rb-qbox">' + (q.done ? '✓' : '') + '</span><span class="rb-qnum">' + (i + 1) + '</span>' +
+        '<span class="rb-qtxt" ondblclick="event.stopPropagation();rbEditQuest(' + i + ')">' + esc(q.text) + '</span>' +
+        '<button class="btn sm warn" onclick="event.stopPropagation();rbDelQuest(' + i + ')">✕</button></div>' +
+        photoArea + '</div>';
+    }).join('');
     return '<div class="page-title">🔄 人生重启计划</div>' +
       '<div class="page-sub">30天全新自我挑战 · 每项做一次即完成</div>' +
       '<div class="rb-tabs"><button class="rb-tab" onclick="rbSwitch(\'habit\')">每日习惯打卡</button><button class="rb-tab on" onclick="rbSwitch(\'quest\')">30天体验清单</button></div>' +
@@ -246,11 +284,34 @@
       rbSave(rbDefault()); render();
     }
   }
+  function rbToggleCollapse(i) {
+    const st = rbState(); st.habit.collapsed = st.habit.collapsed || {};
+    st.habit.collapsed[i] = !rbDayCollapsed(st, i); rbSave(st); render();
+  }
+  function rbAddPhoto(i, input) {
+    const f = input.files && input.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = function () {
+      const st = rbState(); const q = st.quests[i]; if (!q) return;
+      q.photos = q.photos || []; q.photos.push(rd.result);
+      rbSaveSafe(st); render();
+    };
+    rd.readAsDataURL(f); input.value = '';
+  }
+  function rbDelPhoto(i, pi) {
+    const st = rbState(); const q = st.quests[i]; if (!q || !q.photos) return;
+    q.photos.splice(pi, 1); rbSave(st); render();
+  }
+  function rbViewPhoto(i, pi) {
+    const st = rbState(); const q = st.quests[i];
+    if (q && q.photos && q.photos[pi]) window.open(q.photos[pi]);
+  }
 
   /* ---- 暴露到全局，供工作台路由 (window['render_'+id]) 与 onclick 调用 ---- */
   Object.assign(window, {
     render_reboot, rbSwitch, rbSaveSetup, rbExport, rbImportClick, rbReset,
     rbToggleHabit, rbNote, rbAddRule, rbDelRule, rbRuleText,
-    rbToggleQuest, rbEditQuest, rbDelQuest, rbAddQuest, rbRoll, rbImport
+    rbToggleQuest, rbEditQuest, rbDelQuest, rbAddQuest, rbRoll, rbImport,
+    rbToggleCollapse, rbAddPhoto, rbDelPhoto, rbViewPhoto
   });
 })();
