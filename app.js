@@ -35,6 +35,7 @@ function ckToday(key) {
 const PAGES = [
   { id: 'home', ic: '🏠', nm: '首页' },
   { id: 'ledger', ic: '🧾', nm: '记账' },
+  { id: 'reboot', ic: '🔄', nm: '人生重启' },
   { id: 'habit', ic: '🌿', nm: '习惯打卡' },
   { id: 'plan', ic: '📝', nm: '每日计划' },
   { id: 'calendar', ic: '📅', nm: '日程日历' },
@@ -75,6 +76,7 @@ function curPage() { const h = location.hash.replace('#', ''); return PAGES.some
 const TOP = [
   { id: 'home', ic: 'home', nm: '首页' },
   { id: 'ledger', ic: 'ledger', nm: '记账' },
+  { id: 'reboot', ic: 'reboot', nm: '人生重启' },
   { id: 'habit', ic: 'habit', nm: '习惯打卡' },
   { id: 'plan', ic: 'plan', nm: '每日计划' },
   { id: 'calendar', ic: 'calendar', nm: '日程日历' },
