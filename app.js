@@ -543,3 +543,230 @@ function saveCD() {
 }
 function editCD(id) { S.cdEdit = id; render(); }
 function delCD(id) { if (!confirm('删除这条记录？')) return; store.s('countdown', store.g('countdown', []).filter(x => x.id !== id)); render(); }
+
+/* ============ 人生重启 ============ */
+/* ============ 30天人生重启计划 ============ */
+const PROJECT50 = [
+  { k: 'wake', t: '8:00 起床 🛏️', d: '每天 8:00 起床，开启自律的一天' },
+  { k: 'sleep', t: '0:30 以前睡觉 😴', d: '每天 0:30 前入睡' },
+  { k: 'study', t: '固定学习 1 小时 🎯', d: '每天固定学习 1 小时' },
+  { k: 'workout', t: '锻炼 45+ 分钟 🏃‍♀️', d: '每天运动 45 分钟以上' },
+  { k: 'read', t: '阅读 10 页书 📚', d: '每天读 10 页书（纸质 / 电子均可）' },
+  { k: 'skill', t: '学新技能 1 小时 🎥', d: '每天花 1 小时学习一项新技能' },
+  { k: 'diet', t: '健康饮食 🍚', d: '早餐 + 午餐 晚餐任选' },
+  { k: 'water', t: '喝 2 升水 🥛', d: '每天喝够 2 升' },
+  { k: 'plan', t: '规划次日 📃', d: '每晚规划好第二天的安排' },
+  { k: 'track', t: '记录进度', d: '每天写日志 / 记录今日进度' }
+];
+function p50() { return store.g('p50', { start: null, days: {} }); }
+function saveP50(o) { store.s('p50', o); }
+function todayP50Tasks() { const o = p50(); return o.days[today()] || {}; }
+function setP50Start() {
+  const d = $('#p50Start').value;
+  if (!d) { alert('请选择开始日期'); return; }
+  const o = p50(); o.start = d; saveP50(o); render();
+}
+function toggleP50(k) {
+  const o = p50();
+  o.days[today()] = o.days[today()] || {};
+  o.days[today()][k] = !o.days[today()][k];
+  if (!o.days[today()][k]) o.days[today()].done = false;
+  saveP50(o); render();
+}
+function p50Ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function p50Streak() {
+  const o = p50(); const days = o.days; let s = 0;
+  let d = new Date();
+  if (!(days[today()] && days[today()].done)) d.setDate(d.getDate() - 1);
+  while (true) {
+    const ds = p50Ymd(d);
+    if (days[ds] && days[ds].done) { s++; d.setDate(d.getDate() - 1); } else break;
+  }
+  return s;
+}
+function completeP50() {
+  const tk = todayP50Tasks();
+  if (!PROJECT50.every(x => tk[x.k])) { alert('还有任务没勾选完成，PROJECT 50 要求当天 10 项全部完成才算成功一天'); return; }
+  const o = p50();
+  o.days[today()] = o.days[today()] || {};
+  o.days[today()].done = true;
+  if (!o.start) o.start = today();
+  saveP50(o); render();
+}
+function undoP50() { const o = p50(); if (o.days[today()]) o.days[today()].done = false; saveP50(o); render(); }
+function render_p50() {
+  const o = p50(); const tk = todayP50Tasks();
+  const doneTodayAll = PROJECT50.every(x => tk[x.k]);
+  const doneCount = PROJECT50.filter(x => tk[x.k]).length;
+  const streak = p50Streak();
+  const pct = Math.round(streak / 50 * 100);
+  const start = o.start;
+  let dayIdx = null;
+  if (start) {
+    const diff = Math.round((new Date(today()) - new Date(start)) / 86400000) + 1;
+    if (diff >= 1 && diff <= 50) dayIdx = diff;
+  }
+  let tip = '';
+  if (start) {
+    if (dayIdx >= 1 && dayIdx <= 50) tip = `今天第 ${dayIdx} 天 · 还剩 ${50 - dayIdx} 天`;
+    else if (dayIdx < 1) tip = '还没到开始日';
+    else tip = '50 天计划已结束 🎉';
+  } else tip = '设置开始日期后，会自动标记今天是第几天';
+  const sd = start ? start.split('-') : null;
+  const base = sd ? new Date(+sd[0], +sd[1] - 1, +sd[2]) : null;
+  const list = PROJECT50.map(x => {
+    const on = tk[x.k];
+    return `<div class="todo ${on ? 'done' : ''}">
+      <div class="ck" onclick="toggleP50('${x.k}')">${on ? '✓' : ''}</div>
+      <div style="flex:1;min-width:0"><div class="li-main">${esc(x.t)}</div><div class="li-sub">${esc(x.d)}</div></div>
+    </div>`;
+  }).join('');
+  const grid = Array.from({ length: 50 }, (_, i) => {
+    const dd = i + 1;
+    const ds = base ? p50Ymd(new Date(base.getFullYear(), base.getMonth(), base.getDate() + (dd - 1))) : null;
+    const done = ds && o.days[ds] && o.days[ds].done;
+    const isToday = dd === dayIdx;
+    return `<div class="rb-cell ${done ? 'done' : ''} ${isToday ? 'today' : ''}">
+      <div class="rb-d">D${dd}</div>
+      <div class="rb-ck">${done ? '✓' : (isToday ? '今' : '')}</div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="page-title">🔥 PROJECT 50 天自律计划</div>
+  <div class="page-sub">连续 50 天，每天完成 10 项自律任务 · 漏一天清零（外网 Project 50）</div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><div><b>连续 ${streak} / 50 天</b></div><div class="li-sub">${pct}% 完成度</div></div>
+    <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+    <div class="row mt">
+      <span class="li-sub">开始日期</span>
+      <input type="date" id="p50Start" value="${start || ''}" style="max-width:170px">
+      <button class="btn sm" onclick="setP50Start()">${start ? '重设' : '开始'}</button>
+      <span class="li-sub">${tip}</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📌 今日 10 项（${doneCount}/${PROJECT50.length}）</h3>
+    ${list}
+    <div class="row mt">
+      ${tk.done ? `<button class="btn ghost" onclick="undoP50()">今日已完成 ✓（撤销）</button>` : `<button class="btn pink" onclick="completeP50()">${doneTodayAll ? '完成今日挑战 ✔' : '完成今日（需勾满全部）'}</button>`}
+    </div>
+  </div>
+  <div class="card"><h3>🗓 50天总览</h3>
+    <div class="rb-grid">${grid}</div>
+  </div>
+  <div class="card"><h3>📖 规则说明</h3>
+    <div class="poem-sec">PROJECT 50 是连续 50 天的自律挑战，每天必须完成这 ${PROJECT50.length} 项任务：<b>${PROJECT50.map(x => esc(x.t)).join('、')}</b>。<b>任何一天没全部完成，连续天数清零、从头再来。</b></div>
+  </div>`;
+}
+
+const REBOOT30 = [
+  { d: 1, theme: '断舍离启动', act: '整理一个角落，扔掉/捐赠 10 件不用的东西' },
+  { d: 2, theme: '早睡早起', act: '比平时早睡 30 分钟，固定一个起床时间' },
+  { d: 3, theme: '喝水打卡', act: '喝够 8 杯水，今天戒掉含糖饮料' },
+  { d: 4, theme: '动起来', act: '快走/慢跑/跳绳 20 分钟' },
+  { d: 5, theme: '数字排毒', act: '睡前 1 小时不碰手机，换成看书' },
+  { d: 6, theme: '感恩日记', act: '写下今天 3 件值得感恩的小事' },
+  { d: 7, theme: '联系老友', act: '给一位很久没联系的朋友发条消息' },
+  { d: 8, theme: '好好吃饭', act: '自己动手做一顿饭，少点一次外卖' },
+  { d: 9, theme: '阅读时光', act: '读一本想读已久的书，至少 30 分钟' },
+  { d: 10, theme: '静心冥想', act: '闭眼深呼吸，冥想 10 分钟' },
+  { d: 11, theme: '理清财务', act: '记一整天的账，看清钱都去哪了' },
+  { d: 12, theme: '学点新东西', act: '花 30 分钟学一项新技能/新工具' },
+  { d: 13, theme: '断网半天', act: '选半天远离社交媒体，感受 offline' },
+  { d: 14, theme: '手机大扫除', act: '删掉不用的 APP 和重复照片' },
+  { d: 15, theme: '善待身体', act: '做一组拉伸，或给自己按个摩' },
+  { d: 16, theme: '表达感谢', act: '当面或发消息感谢一个人' },
+  { d: 17, theme: '定下目标', act: '写下本月最想完成的 3 个目标' },
+  { d: 18, theme: '晨间仪式', act: '固定一套属于自己的晨间流程' },
+  { d: 19, theme: '宠爱自己', act: '做一件纯粹让自己开心的小事' },
+  { d: 20, theme: '周中复盘', act: '回顾本周得失，记下一句感悟' },
+  { d: 21, theme: '小小善意', act: '为别人做一件不经意的善事' },
+  { d: 22, theme: '控屏计划', act: '给手机设一个每日使用时长上限' },
+  { d: 23, theme: '深度专注', act: '选一件重要的事，专注做 2 小时' },
+  { d: 24, theme: '亲近自然', act: '去公园或户外走一走，晒晒太阳' },
+  { d: 25, theme: '衣橱断舍离', act: '清理出不再穿的衣物，捐赠或处理' },
+  { d: 26, theme: '理财入门', act: '读一篇理财/储蓄文章，记一个知识点' },
+  { d: 27, theme: '写给未来', act: '给一个月后的自己写一封信' },
+  { d: 28, theme: '清零拖延', act: '处理掉一件一直拖着的小事' },
+  { d: 29, theme: '复盘变化', act: '回顾这 29 天，写下自己的变化' },
+  { d: 30, theme: '庆祝 & 启程', act: '庆祝完成，设定下一个 30 天目标' }
+];
+function reboot30() { return store.g('reboot30', { start: null, done: {}, notes: {} }); }
+function saveReboot30(o) { store.s('reboot30', o); }
+function setReboot30Start() {
+  const d = $('#rbStart').value;
+  if (!d) { alert('请选择开始日期'); return; }
+  const o = reboot30(); o.start = d; saveReboot30(o); render();
+}
+function toggleReboot30(d) {
+  const o = reboot30(); o.done[d] = !o.done[d]; saveReboot30(o); render();
+}
+function saveReboot30Note(d) {
+  const o = reboot30(); o.notes[d] = $('#rbNote' + d).value; saveReboot30(o);
+}
+function render_reboot() {
+  if ((S.rebootTab || '30') === 'p50') return render_p50();
+  const o = reboot30();
+  const doneCount = Object.keys(o.done).filter(k => o.done[k]).length;
+  const pct = Math.round(doneCount / 30 * 100);
+  const start = o.start;
+  let dayIdx = null;
+  if (start) {
+    const diff = Math.round((new Date(today()) - new Date(start)) / 86400000) + 1;
+    if (diff >= 1 && diff <= 30) dayIdx = diff;
+  }
+  const viewDay = (S.rebootDay && S.rebootDay >= 1 && S.rebootDay <= 30) ? S.rebootDay : (dayIdx || 1);
+  const v = REBOOT30[viewDay - 1];
+  const grid = REBOOT30.map(x => {
+    const done = o.done[x.d];
+    const isToday = x.d === dayIdx;
+    const isView = x.d === viewDay;
+    return `<div class="rb-cell ${done ? 'done' : ''} ${isToday ? 'today' : ''} ${isView ? 'view' : ''}" onclick="S.rebootDay=${x.d};render()">
+      <div class="rb-d">D${x.d}</div>
+      <div class="rb-t">${esc(x.theme)}</div>
+      <div class="rb-ck">${done ? '✓' : (isToday ? '今' : '')}</div>
+    </div>`;
+  }).join('');
+  let tip = '';
+  if (start) {
+    if (dayIdx >= 1 && dayIdx <= 30) tip = `今天第 ${dayIdx} 天 · 还剩 ${30 - dayIdx} 天`;
+    else if (dayIdx < 1) tip = '还没到开始日';
+    else tip = '30 天计划已结束 🎉';
+  } else tip = '设置开始日期后，会自动标记今天是第几天';
+  return `
+  <div class="page-title">🔄 30天人生重启计划</div>
+  <div class="page-sub">用 30 天微小行动，重启你想要的人生</div>
+  <div class="subtabs">
+    <button class="btn ${(S.rebootTab || '30') === '30' ? 'pink' : 'ghost'}" onclick="S.rebootTab='30';S.rebootDay=1;render()">🌱 30天计划</button>
+    <button class="btn ${(S.rebootTab || '30') === 'p50' ? 'pink' : 'ghost'}" onclick="S.rebootTab='p50';render()">🔥 PROJECT 50</button>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div><b>第 ${doneCount} / 30 天</b> 已完成</div>
+      <div class="li-sub">${pct}% 完成度</div>
+    </div>
+    <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+    <div class="row mt">
+      <span class="li-sub">开始日期</span>
+      <input type="date" id="rbStart" value="${start || ''}" style="max-width:170px">
+      <button class="btn sm" onclick="setReboot30Start()">${start ? '重设' : '开始'}</button>
+      <span class="li-sub">${tip}</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📌 第 ${v.d} 天 · ${esc(v.theme)}</h3>
+    <div class="poem-sec"><b>今日行动：</b>${esc(v.act)}</div>
+    <div class="row mt">
+      <button class="btn ${o.done[v.d] ? 'ghost' : 'pink'}" onclick="toggleReboot30(${v.d})">${o.done[v.d] ? '已完成 ✓（撤销）' : '打卡完成 ✓'}</button>
+    </div>
+    <div class="row mt">
+      <input class="grow" id="rbNote${v.d}" placeholder="今日笔记（可选）" value="${esc(o.notes[v.d] || '')}" onchange="saveReboot30Note(${v.d})">
+    </div>
+  </div>
+
+  <div class="card"><h3>🗓 30天总览</h3>
+    <div class="rb-grid">${grid}</div>
+  </div>`;
+}

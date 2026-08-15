@@ -1,5 +1,6 @@
 /* ============ 快递记录 ============ */
 function kdList() { return store.g('kuaidi', []); }
+function money(n) { const v = Math.round((+n || 0) * 100) / 100; return Number.isInteger(v) ? String(v) : v.toFixed(2); }
 
 function addKd() {
   const platform = $('#kdPlatform').value.trim();
@@ -30,7 +31,7 @@ function kdStat(list) {
   const valid = list.filter(k => !k.refund);
   return {
     count: valid.length,
-    amount: valid.reduce((a, b) => a + (+b.amount || 0), 0)
+    amount: Math.round(valid.reduce((a, b) => a + (+b.amount || 0), 0) * 100) / 100
   };
 }
 
@@ -55,7 +56,7 @@ function render_kuaidi() {
       <div class="li-sub">
         <span class="tag b">${esc(k.platform || '未填平台')}</span>
         <span class="tag">${esc(k.date)}</span>
-        ${k.amount ? '<span class="tag p">¥' + (+k.amount) + '</span>' : ''}
+        ${k.amount ? '<span class="tag p">¥' + money(k.amount) + '</span>' : ''}
         ${k.refund ? '<span class="tag warn">已退款</span>' : ''}
         ${!k.done && !k.refund ? '<span class="tag">运输中</span>' : ''}
         ${k.done && !k.refund ? '<span class="tag ok">已到货</span>' : ''}
@@ -72,9 +73,9 @@ function render_kuaidi() {
 
   <div class="stat-grid">
     <div class="stat"><div class="num">${monthStat.count}</div><div class="lb">本月件数</div></div>
-    <div class="stat"><div class="num pk">¥${monthStat.amount}</div><div class="lb">本月金额</div></div>
+    <div class="stat"><div class="num pk">¥${money(monthStat.amount)}</div><div class="lb">本月金额</div></div>
     <div class="stat"><div class="num">${todayStat.count}</div><div class="lb">今日件数</div></div>
-    <div class="stat"><div class="num pk">¥${todayStat.amount}</div><div class="lb">今日金额</div></div>
+    <div class="stat"><div class="num pk">¥${money(todayStat.amount)}</div><div class="lb">今日金额</div></div>
   </div>
 
   <div class="card">
@@ -91,7 +92,7 @@ function render_kuaidi() {
   </div>
 
   <div class="card"><h3>📅 本月每日明细</h3>
-    ${dayRows.length ? dayRows.map(s => `<div class="list-item"><div class="li-main"><span class="tag b">${s.d}</span> ${s.count} 件 · <b>¥${s.amount}</b></div></div>`).join('') : '<div class="empty">本月还没有记录</div>'}
+    ${dayRows.length ? dayRows.map(s => `<div class="list-item"><div class="li-main"><span class="tag b">${s.d}</span> ${s.count} 件 · <b>¥${money(s.amount)}</b></div></div>`).join('') : '<div class="empty">本月还没有记录</div>'}
   </div>
 
   <div class="card"><h3>📦 全部记录（${all.length}）</h3>

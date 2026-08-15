@@ -332,3 +332,20 @@ details.rev-item summary::-webkit-details-marker{display:none;}
 .stock-card{flex:1;min-width:108px;background:var(--amber-l);border-radius:12px;padding:8px 12px;text-align:center;}
 .stock-num{font-size:22px;font-weight:800;line-height:1.15;}
 .stock-u{font-size:12px;font-weight:600;}
+
+/* 30天人生重启计划 */
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--amber));transition:width .3s;}
+.rb-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.rb-cell{
+  position:relative;border-radius:12px;padding:10px 6px 8px;text-align:center;cursor:pointer;
+  background:rgba(255,255,255,.72);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.45);
+}
+.rb-cell.done{background:linear-gradient(135deg,var(--blue-l),var(--amber-l));}
+.rb-cell.today{border-color:var(--amber-d);border-width:2px;}
+.rb-cell.view{box-shadow:0 0 0 2px var(--blue-d);}
+.rb-d{font-size:12px;color:var(--muted);font-weight:700;}
+.rb-t{font-size:11px;line-height:1.3;margin-top:3px;color:var(--ink);min-height:28px;display:flex;align-items:center;justify-content:center;}
+.rb-ck{position:absolute;top:4px;right:6px;font-size:11px;font-weight:700;color:var(--amber-d);}
+.rb-cell.done .rb-ck{color:var(--blue-d);}
+@media (max-width:480px){ .rb-grid{grid-template-columns:repeat(5,1fr);} }
