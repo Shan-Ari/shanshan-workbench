@@ -6,10 +6,15 @@ function addKd() {
   const name = $('#kdName').value.trim();
   const date = $('#kdDate').value || today();
   const amount = +$('#kdAmount').value || 0;
-  const refund = $('#kdRefund') && $('#kdRefund').checked;
   if (!name) { alert('请填写物品名称'); return; }
   const all = kdList();
-  all.unshift({ id: uid(), platform: platform, name: name, date: date, amount: amount, refund: !!refund, done: false });
+  all.unshift({ id: uid(), platform: platform, name: name, date: date, amount: amount, done: false });
+  store.s('kuaidi', all); render();
+}
+function toggleKdRefund(id) {
+  const all = kdList();
+  const k = all.find(x => x.id === id);
+  if (k) k.refund = !k.refund;
   store.s('kuaidi', all); render();
 }
 function toggleKdDone(id) {
@@ -53,10 +58,11 @@ function render_kuaidi() {
         ${k.amount ? '<span class="tag p">¥' + (+k.amount) + '</span>' : ''}
         ${k.refund ? '<span class="tag warn">已退款</span>' : ''}
         ${!k.done && !k.refund ? '<span class="tag">运输中</span>' : ''}
-        ${k.done ? '<span class="tag ok">已到货</span>' : ''}
+        ${k.done && !k.refund ? '<span class="tag ok">已到货</span>' : ''}
       </div>
     </div>
     <button class="btn sm ${k.done ? 'ghost' : 'pink'}" onclick="toggleKdDone('${k.id}')">${k.done ? '撤销' : '到货 ✓'}</button>
+    <button class="btn sm ${k.refund ? 'ghost' : ''}" onclick="toggleKdRefund('${k.id}')">${k.refund ? '撤销退款' : '退款'}</button>
     <button class="btn sm warn" onclick="delKd('${k.id}')">删</button>
   </div>`;
 
@@ -80,7 +86,6 @@ function render_kuaidi() {
       <input type="number" class="grow" id="kdAmount" placeholder="金额 (元)">
     </div>
     <div class="row mt">
-      <label class="li-sub" style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="kdRefund"> 已退款 / 退货</label>
       <button class="btn" onclick="addKd()">添加 ➕</button>
     </div>
   </div>
