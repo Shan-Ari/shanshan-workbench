@@ -7,7 +7,7 @@ const ICON_EMOJI = {
   poem: '🏮', note: '✏️', sport: '💪', finance: '💰', ledger: '🧾', repay: '💳',
   habit: '🌿', calendar: '📅', countdown: '⏳', weekly: '🗓️', monthly: '🌙',
   coffee: '☕', read: '📖', bear: '🧸', plant: '🪴', headphone: '🎧', leaf: '🍃',
-  inspire: '💡', express: '💬'
+  inspire: '💡', express: '💬', kuaidi: '📦'
 };
 function icon(id) {
   return `<span class="emoji-ic">${ICON_EMOJI[id] || '•'}</span>`;
