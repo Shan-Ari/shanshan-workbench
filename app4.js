@@ -91,29 +91,35 @@ function render_ledger() {
       list.forEach(x => { (days[x.date] = days[x.date] || []).push(x); });
       const dates = Object.keys(days).sort((a, b) => b.localeCompare(a));
       if (!dates.length) return '<div class="empty">本月还没有账目</div>';
+      S.ledOpen = S.ledOpen || {};
       return dates.map(d => {
         const items = days[d].slice().sort((a, b) => (b.id || '').localeCompare(a.id || ''));
         const dExp = items.filter(x => x.type === '支出').reduce((s, x) => s + x.amt, 0);
         const dInc = items.filter(x => x.type === '收入').reduce((s, x) => s + x.amt, 0);
         const wd = WD_SHORT[new Date(d + 'T00:00:00').getDay()];
+        const open = (d === today()) ? (S.ledOpen[d] !== false) : !!S.ledOpen[d];
         return `<div class="day-group">
-          <div class="day-head">
+          <div class="day-head" onclick="toggleLedDay('${d}')">
             <span class="day-date">${d.slice(5)} <span class="li-sub">周${wd}</span></span>
             <span class="day-sum">
               <span class="li-sub">支出 <b class="exp">¥${dExp.toFixed(0)}</b></span>
               ${dInc ? `<span class="li-sub" style="margin-left:8px">收入 <b class="inc">¥${dInc.toFixed(0)}</b></span>` : ''}
               <span class="li-sub" style="margin-left:8px">${items.length} 笔</span>
+              <span class="day-arrow">${open ? '▾' : '▸'}</span>
             </span>
           </div>
+          <div class="day-detail" style="display:${open ? 'block' : 'none'}">
           ${items.map(x => `<div class="list-item sub"><div class="li-main">
             <span class="tag ${x.type === '收入' ? 'g' : 'p'}">${x.type}</span><span class="tag b">${x.cat}</span><b>¥${x.amt}</b>
             ${x.note ? `<div class="li-sub">${esc(x.note)}</div>` : ''}</div>
             <button class="btn sm warn" onclick="delLedger('${x.id}')">删</button></div>`).join('')}
+          </div>
         </div>`;
       }).join('');
     })()}
   </div>
 `;}
+function toggleLedDay(d) { S.ledOpen = S.ledOpen || {}; S.ledOpen[d] = !S.ledOpen[d]; render(); }
 /* ============ 还款管理（与收支分开，独立页面） ============ */
 function repayFrag() { return repaySection(); }
 function render_repay() {

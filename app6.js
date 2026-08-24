@@ -37,6 +37,8 @@ function kdStat(list) {
 
 function render_kuaidi() {
   const all = kdList();
+  const pending = all.filter(k => !k.done);
+  const done = all.filter(k => k.done);
   const tStr = today();
   const mStr = thisMonth();
 
@@ -96,6 +98,17 @@ function render_kuaidi() {
   </div>
 
   <div class="card"><h3>📦 全部记录（${all.length}）</h3>
-    ${all.length ? all.map(item).join('') : '<div class="empty">还没有快递记录，买点什么犒劳自己吧 🛍️</div>'}
+    ${all.length ? `
+      ${pending.length ? pending.map(item).join('') : '<div class="empty">🎉 没有进行中的快递</div>'}
+      ${done.length ? `<div class="kd-done-wrap">
+        <div class="kd-done-head" onclick="S.kdDoneOpen=!S.kdDoneOpen;render()">
+          <span>已到货 ${done.length} 件</span>
+          <span class="day-arrow">${S.kdDoneOpen ? '▾' : '▸'}</span>
+        </div>
+        <div class="day-detail" style="display:${S.kdDoneOpen ? 'block' : 'none'}">
+          ${done.map(item).join('')}
+        </div>
+      </div>` : ''}
+    ` : '<div class="empty">还没有快递记录，买点什么犒劳自己吧 🛍️</div>'}
   </div>`;
 }
