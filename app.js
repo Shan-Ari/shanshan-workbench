@@ -322,6 +322,7 @@ function addListen() {
 const PLAN_CATS = ['工作', '学习', '生活', '运动'];
 const PRIS = [['高', 'r'], ['中', 'y'], ['低', 'g']];
 function render_plan() {
+  if ((S.planSub || 'free') === 'routine') return render_routine();
   const all = store.g('plans', []);
   const list = all.filter(p => p.date === S.planDate);
   const overdue = all.filter(p => p.date < today() && !p.done);
@@ -342,6 +343,7 @@ function render_plan() {
   return `
   <div class="page-title">📝 每日计划</div>
   <div class="page-sub">当日待办 ${list.length - doneN} 项 · 已完成 ${doneN} 项</div>
+  ${planSubBar()}
 
   <div class="card">
     <div class="row"><input type="date" value="${S.planDate}" onchange="S.planDate=this.value;S.planEdit=null;render()"><span class="tag b">${S.planDate === today() ? '今天' : S.planDate}</span></div>
@@ -381,6 +383,112 @@ function moveOverdue() {
   all.forEach(p => { if (p.date < today() && !p.done) p.date = today(); });
   store.s('plans', all); S.planDate = today(); render();
 }
+
+/* ============ 每日计划 · 固定日程（子分类） ============
+   内容固定（8 项作息），区间 明天 ~ 2026-09-30；每天有已完成/待完成，跨天后折叠，带完成热力图。 */
+const ROUTINE_ITEMS = [
+  { id: 'r0', ic: '🛏️', t: '起床', time: '7:30' },
+  { id: 'r1', ic: '🆎', t: '外语学习', time: '8:30-9:30' },
+  { id: 'r2', ic: '💻', t: '上课', time: '10:00-11:00' },
+  { id: 'r3', ic: '📚', t: '看书', time: '14:00-15:00' },
+  { id: 'r4', ic: '💻', t: '上课', time: '15:30-17:00' },
+  { id: 'r5', ic: '💻', t: '上课', time: '17:30-19:00' },
+  { id: 'r6', ic: '💻', t: '上课', time: '21:00-22:00' },
+  { id: 'r7', ic: '😴', t: '睡觉', time: '23:30' }
+];
+const ROUTINE_END = '2026-09-30';
+const WK_CN2 = ['日', '一', '二', '三', '四', '五', '六'];
+function dayAdd(s, n) { const p = String(s).split('-'); const d = new Date(+p[0], +p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return fmt(d); }
+function rtState() { return store.g('routine', { days: {}, collapsed: {} }); }
+function rtSave(st) { store.s('routine', st); }
+function rtDoneCount(d, date) { const day = (d.days[date]) || {}; return ROUTINE_ITEMS.filter(it => day[it.id]).length; }
+let rtActiveDay = null;
+function rtCollapsed(d, date) { const c = d.collapsed && d.collapsed[date]; if (c === undefined) return rtActiveDay ? (date !== rtActiveDay) : true; return !!c; }
+function rtHeatOpen(d) { return !!d.heatOpen; }
+function planSubBar() {
+  const cur = S.planSub || 'free';
+  return '<div class="rb-tabs" style="margin:4px 0 14px"><button class="rb-tab ' + (cur === 'free' ? 'on' : '') + '" onclick="planSwitchSub(\'free\')">自由计划</button><button class="rb-tab ' + (cur === 'routine' ? 'on' : '') + '" onclick="planSwitchSub(\'routine\')">固定日程</button></div>';
+}
+function planSwitchSub(sub) { S.planSub = sub; render(); }
+function routineEnsureStyle() {
+  if (document.getElementById('rt-style')) return;
+  const s = document.createElement('style'); s.id = 'rt-style';
+  s.textContent = `
+.rt-hm{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.rt-cell{width:46px;height:48px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#6b5555;cursor:pointer;border:1px solid #f0e6da}
+.rt-cell .rt-d{font-weight:700;font-size:13px;line-height:1.1}
+.rt-cell .rt-c{font-size:10px;color:#8a7a7a;margin-top:1px}
+.rt-cell.today{outline:2px solid #F9E79F;outline-offset:1px}
+.rt-legend{display:flex;gap:6px;align-items:center;font-size:11px;color:#9a8a8a;margin:6px 0 14px;flex-wrap:wrap}
+.rt-lg{width:14px;height:14px;border-radius:4px;border:1px solid #f0e6da}
+.rt-sect{font-size:13px;color:#6b5555;margin:12px 0 6px;font-weight:600}
+.rt-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:#faf6ef;margin-bottom:7px;cursor:pointer}
+.rt-row.on{background:#eaf6ef}
+.rt-box{width:20px;height:20px;border-radius:6px;border:2px solid #d8c8b8;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex:none}
+.rt-row.on .rt-box{background:#B8E0D2;border-color:#B8E0D2}
+.rt-t{flex:1;line-height:1.3}
+.rt-time{font-size:12px;color:#9a8a8a}
+.rt-dayhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.rt-dayhead b{font-size:15px;color:#6b5555}`;
+  document.head.appendChild(s);
+}
+function rtColor(ratio) {
+  if (ratio <= 0) return '#f0e8dc';
+  if (ratio < 0.5) return '#d9ecdf';
+  if (ratio < 1) return '#b9e2c6';
+  return '#8fd6a6';
+}
+function render_routine() {
+  routineEnsureStyle();
+  const start = dayAdd(today(), 1);
+  const end = ROUTINE_END;
+  const d = rtState();
+  const seq = [];
+  let cur = start;
+  while (cur <= end) { seq.push(cur); cur = dayAdd(cur, 1); }
+  if (!seq.length) return '<div class="page-title">📝 每日计划</div>' + planSubBar() + '<div class="card"><div class="empty">固定日程区间（' + start + ' ~ ' + end + '）已结束或未开始。</div></div>';
+  rtActiveDay = seq.includes(today()) ? today() : seq[0];
+  let totalDone = 0;
+  seq.forEach(dt => { totalDone += rtDoneCount(d, dt); });
+  const cells = seq.map(dt => {
+    const done = rtDoneCount(d, dt);
+    const dt2 = new Date(dt + 'T00:00:00');
+    const wk = WK_CN2[dt2.getDay()];
+    const pend = ROUTINE_ITEMS.length - done;
+    return '<div class="rt-cell ' + (dt === today() ? 'today' : '') + '" style="background:' + rtColor(done / ROUTINE_ITEMS.length) + '" title="' + dt + ' 周' + wk + ' · 已完成 ' + done + '/' + ROUTINE_ITEMS.length + '，待完成 ' + pend + '" onclick="routineFocus(\'' + dt + '\')"><div class="rt-d">' + (+dt.slice(8)) + '</div><div class="rt-c">' + done + '/' + ROUTINE_ITEMS.length + '</div></div>';
+  }).join('');
+  const legend = '<div class="rt-legend"><span>完成度</span>' +
+    [['#f0e8dc', '0'], ['#d9ecdf', '<50%'], ['#b9e2c6', '50-99%'], ['#8fd6a6', '全完成']].map(x => '<span class="rt-lg" style="background:' + x[0] + '"></span>' + x[1]).join('') +
+    '<span style="margin-left:8px">点格子可展开当天</span></div>';
+  const cards = seq.map(dt => {
+    const day = (d.days[dt]) || {};
+    const done = rtDoneCount(d, dt);
+    const pend = ROUTINE_ITEMS.length - done;
+    const collapsed = rtCollapsed(d, dt);
+    const isToday = dt === today();
+    const wk = WK_CN2[new Date(dt + 'T00:00:00').getDay()];
+    const doneItems = ROUTINE_ITEMS.filter(it => day[it.id]);
+    const pendItems = ROUTINE_ITEMS.filter(it => !day[it.id]);
+    const rowOf = it => '<div class="rt-row ' + (day[it.id] ? 'on' : '') + '" onclick="routineToggle(\'' + dt + '\',\'' + it.id + '\')"><span class="rt-box">' + (day[it.id] ? '✓' : '') + '</span><span class="rt-t">' + it.ic + ' ' + it.t + ' <span class="rt-time">' + it.time + '</span></span></div>';
+    const body = collapsed
+      ? '<div class="rb-summary"><span class="rb-sp">已完成 ' + done + ' / ' + ROUTINE_ITEMS.length + ' · 待完成 ' + pend + '</span></div>'
+      : '<div class="rt-sect">✅ 已完成（' + doneItems.length + '）</div>' + (doneItems.length ? doneItems.map(rowOf).join('') : '<div class="empty" style="padding:6px">暂无</div>') +
+        '<div class="rt-sect">⏳ 待完成（' + pendItems.length + '）</div>' + (pendItems.length ? pendItems.map(rowOf).join('') : '<div class="empty" style="padding:6px">今日全部完成 🎉</div>');
+    return '<div class="card rb-day ' + (isToday ? 'rb-today ' : '') + (collapsed ? 'collapsed' : '') + '">' +
+      '<div class="rt-dayhead" onclick="routineToggleCollapse(\'' + dt + '\')"><b>' + dt.slice(5) + '</b><span class="li-sub">周' + wk + '</span>' +
+      (done === ROUTINE_ITEMS.length ? '<span class="tag g">全完成</span>' : '<span class="tag ' + (isToday ? 'y' : 'r') + '">待 ' + pend + '</span>') +
+      '<span class="rb-caret" style="margin-left:auto">' + (collapsed ? '▸' : '▾') + '</span></div>' + body + '</div>';
+  }).join('');
+  const heatOpen = rtHeatOpen(d);
+  const heatCard = '<div class="card" style="padding:14px 16px"><div class="rt-dayhead" style="margin-bottom:' + (heatOpen ? '10px' : '0') + '" onclick="routineToggleHeat()"><b>📊 完成热力图</b><span class="rb-caret" style="margin-left:auto">' + (heatOpen ? '▾' : '▸') + '</span></div>' + (heatOpen ? (cells + legend) : '') + '</div>';
+  return '<div class="page-title">📝 每日计划</div>' + planSubBar() +
+    '<div class="page-sub">固定日程 ' + start + ' ~ ' + end + ' · 共 ' + seq.length + ' 天 · 累计完成 ' + totalDone + ' 项</div>' +
+    heatCard + cards;
+}
+function routineToggle(dt, id) { const d = rtState(); d.days[dt] = d.days[dt] || {}; d.days[dt][id] = !d.days[dt][id]; rtSave(d); render(); }
+function routineToggleCollapse(dt) { const d = rtState(); d.collapsed = d.collapsed || {}; d.collapsed[dt] = !rtCollapsed(d, dt); rtSave(d); render(); }
+function routineFocus(dt) { const d = rtState(); d.collapsed = d.collapsed || {}; d.collapsed[dt] = false; rtSave(d); render(); }
+function routineToggleHeat() { const d = rtState(); d.heatOpen = !rtHeatOpen(d); rtSave(d); render(); }
 
 /* ============ 倒计时 ============ */
 function parseLunarMD(s) { const p = s.split('-'); return { m: +p[0], d: +p[1] }; }
