@@ -407,7 +407,7 @@ function rtCollapsed(d, date) { const c = d.collapsed && d.collapsed[date]; if (
 function rtHeatOpen(d) { return !!d.heatOpen; }
 function planSubBar() {
   const cur = S.planSub || 'free';
-  return '<div class="rb-tabs" style="margin:4px 0 14px"><button class="rb-tab ' + (cur === 'free' ? 'on' : '') + '" onclick="planSwitchSub(\'free\')">自由计划</button><button class="rb-tab ' + (cur === 'routine' ? 'on' : '') + '" onclick="planSwitchSub(\'routine\')">固定日程</button></div>';
+  return '<div class="tabs" style="margin:4px 0 14px"><div class="tab ' + (cur === 'free' ? 'active' : '') + '" onclick="planSwitchSub(\'free\')">📝 自由计划</div><div class="tab ' + (cur === 'routine' ? 'active' : '') + '" onclick="planSwitchSub(\'routine\')">🗓️ 固定日程</div></div>';
 }
 function planSwitchSub(sub) { S.planSub = sub; render(); }
 function routineEnsureStyle() {
