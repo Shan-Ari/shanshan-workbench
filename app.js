@@ -305,8 +305,19 @@ function render_home() {
       <button class="btn sm ghost" onclick="backupExport()">⬇️ 导出备份</button>
       <button class="btn sm ghost" onclick="document.getElementById('backupFile').click()">⬆️ 导入备份</button>
     </div>
+    <div class="row" style="justify-content:center;gap:8px;margin-top:8px">
+      <button class="btn sm warn" onclick="clearAllData()">🗑️ 清空所有记录</button>
+    </div>
     <input type="file" id="backupFile" accept="application/json" style="display:none" onchange="backupImport(this)">
   </div>`;
+}
+function clearAllData() {
+  if (!confirm('⚠️ 确定要清空工作台的全部记录吗？\n此操作不可恢复（记账、宠物、快递、习惯、计划等所有本地数据都会被删除）。\n建议先点上方「导出备份」保底。')) return;
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('ss_') === 0) keys.push(k); }
+  keys.forEach(k => localStorage.removeItem(k));
+  if (S.ledOpen) S.ledOpen = {}; S.kdDoneOpen = false;
+  render();
 }
 function addRead() {
   const m = +$('#rdMin').value || 0, c = +$('#rdCnt').value || 0;
