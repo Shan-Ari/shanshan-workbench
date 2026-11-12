@@ -3,11 +3,8 @@
    配合 style.css 中各 .ic 容器的圆形浅色底，呈现「emoji + 色块」的经典观感。
 */
 const ICON_EMOJI = {
-  home: '🏠', plan: '📝', pet: '🐱', clip: '🎬', book: '📚', reboot: '🔄',
-  poem: '🏮', note: '✏️', sport: '💪', finance: '💰', ledger: '🧾', repay: '💳',
-  habit: '🌿', calendar: '📅', countdown: '⏳', weekly: '🗓️', monthly: '🌙',
-  coffee: '☕', read: '📖', bear: '🧸', plant: '🪴', headphone: '🎧', leaf: '🍃',
-  inspire: '💡', express: '💬', kuaidi: '📦'
+  home: '🏠', ledger: '🧾', habit: '🌿', plan: '📝', calendar: '📅', pet: '🐱', kuaidi: '📦', focus: '⏱️',
+  coffee: '☕', book: '📚', bear: '🧸', plant: '🪴', headphone: '🎧', leaf: '🍃'
 };
 function icon(id) {
   return `<span class="emoji-ic">${ICON_EMOJI[id] || '•'}</span>`;
