@@ -68,6 +68,17 @@ const TOP = [
   { id: 'pet', ic: 'pet', nm: '宠物记录' },
   { id: 'kuaidi', ic: 'kuaidi', nm: '快递记录' }
 ];
+/* 底部标签栏：5 个高频模块（其余从首页宫格进入） */
+const BOTTOM_TABS = [
+  { id: 'home', ic: 'home', nm: '首页' },
+  { id: 'ledger', ic: 'ledger', nm: '记账' },
+  { id: 'habit', ic: 'habit', nm: '习惯' },
+  { id: 'focus', ic: 'focus', nm: '专注' },
+  { id: 'plan', ic: 'plan', nm: '计划' },
+  { id: 'calendar', ic: 'calendar', nm: '日历' },
+  { id: 'pet', ic: 'pet', nm: '宠物' },
+  { id: 'kuaidi', ic: 'kuaidi', nm: '快递' }
+];
 /* ============ 模块配色：每个版块一个主色 ============ */
 const MOD_COLORS = {
   home: '#c6e7ff', ledger: '#ffc5c5', habit: '#a0d683', plan: '#feee91',
@@ -101,7 +112,7 @@ function applyTheme(id) {
 }
 function buildSidebar() {
   const cur = curPage();
-  $('#sidebar').innerHTML = TOP.map(t => `<div class="tb-item ${cur === t.id ? 'active' : ''}" style="--ic-soft:${modTone(t.id).ic}" onclick="go('${t.id}')"><span class="ic">${icon(t.ic)}</span><span class="nm">${t.nm}</span></div>`).join('');
+  $('#sidebar').innerHTML = BOTTOM_TABS.map(t => `<div class="tb-item ${cur === t.id ? 'active' : ''}" onclick="go('${t.id}')"><span class="ic">${icon(t.ic)}</span><span class="nm">${t.nm}</span></div>`).join('');
 }
 function render() {
   applyTheme(curPage());
