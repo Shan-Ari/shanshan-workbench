@@ -17,6 +17,7 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
   background:#FFF9F9;
   min-height:100vh;color:var(--ink);font-size:14px;
+  padding-top:env(safe-area-inset-top, 0px);
 }
 body::before{
   content:'';position:fixed;inset:0;z-index:-1;
