@@ -151,11 +151,15 @@ function ledMainHtml() {
   const days = {};
   list.forEach(x => { (days[x.date] = days[x.date] || []).push(x); });
   const dates = Object.keys(days).sort((a, b) => b.localeCompare(a));
+  const debtBook = ldIsDebtBook();
   return `<div class="ld-summary">
-    <div class="ld-summary-label">本月结余</div>
-    <div class="ld-summary-main">¥${(inc - exp).toFixed(2)}</div>
-    <div class="ld-summary-row"><span>收入 <b>¥${inc.toFixed(2)}</b></span><span>支出 <b>¥${exp.toFixed(2)}</b></span></div>
-    <div class="ld-summary-row"><span>笔数 <b>${list.length}</b></span><span>账本余额 <b>¥${ledBookAcctTotal().toFixed(2)}</b></span></div>
+    <div class="ld-summary-label">${debtBook ? '总负债' : '本月结余'}</div>
+    <div class="ld-summary-main">${debtBook ? LDS(-ledDebtLiability()) : '¥' + (inc - exp).toFixed(2)}</div>
+    ${debtBook
+      ? `<div class="ld-summary-row"><span>借入 <b>¥${LDM(ledDebtLiability())}</b></span><span>借出 <b>¥${LDM(ledDebtLent())}</b></span></div>
+    <div class="ld-summary-row"><span>负债记录 <b>${ledDebts().length} 笔</b></span><span>本月流水 <b>¥${(inc - exp).toFixed(2)}</b></span></div>`
+      : `<div class="ld-summary-row"><span>收入 <b>¥${inc.toFixed(2)}</b></span><span>支出 <b>¥${exp.toFixed(2)}</b></span></div>
+    <div class="ld-summary-row"><span>笔数 <b>${list.length}</b></span><span>账本余额 <b>¥${ledBookAcctTotal().toFixed(2)}</b></span></div>`}
   </div>
   <button class="ld-add-btn" onclick="${ldIsDebtBook() ? "S.ledView='debt';render()" : "S.ledView='add';S.ledType='支出';S.ledAmt='';render()"}">${ldIsDebtBook() ? '＋ 新增借入 / 借出' : '＋ 记一笔'}</button>
   ${ledQuickEntries()}
@@ -298,6 +302,7 @@ const LED_PLAN_TYPES = [
   { id: 'free', name: '自由存钱', per: 0, count: 0, step: false, icon: '🔓' }
 ];
 const LDM = n => { const v = (+n || 0).toFixed(2); const q = v.split('.'); return q[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + q[1]; };
+const LDS = n => { const v = +n || 0; return (v < 0 ? '-' : '') + '¥' + LDM(Math.abs(v)); };
 function ldF() { return S.ldForm || (S.ldForm = {}); }
 function ldIsDebtBook() { const b = ledCurBook(); return b.id === 'debt' || b.kind === 'debt'; }
 function ldAcctOpts(cur) {
@@ -494,6 +499,7 @@ function ledShopDel(id) { ledSaveShop(ledShop().filter(x => x.id !== id)); rende
 /* ---------- 页面：借入 / 借出列表（图 1） ---------- */
 function ledDebtHtml() {
   const kind = ledDebtKind(), list = ledDebtList();
+  const neg = kind === 'in' ? '-' : '';
   const total = list.reduce((s, d) => s + ledDebtTotal(d), 0);
   const remain = list.reduce((s, d) => s + ledDebtRemain(d), 0);
   const paid = total - remain;
@@ -504,10 +510,10 @@ function ledDebtHtml() {
     <button class="ld-tool" onclick="S.ledView='books';render()">⋯</button></div>
   <div class="ld2-hero">
     <div class="ld2-hero-label">剩余未${kind === 'in' ? '还' : '收'}</div>
-    <div class="ld2-hero-row"><div class="ld2-hero-num">${LDM(remain)}</div><div class="ld2-ring">${pct}.0%<i>还款进度</i></div></div>
+    <div class="ld2-hero-row"><div class="ld2-hero-num">${remain > 0 ? neg : ''}${LDM(remain)}</div><div class="ld2-ring">${pct}.0%<i>还款进度</i></div></div>
     <div class="ld2-hero-sub">共 ${list.length} 笔 · 利息支出 ${LDM(interestPaid)}</div>
     <div class="ld2-mini"><div><b>${LDM(total)}</b><span>总${kind === 'in' ? '借入' : '借出'}</span></div>
-      <div><b>${LDM(paid)}</b><span>已还</span></div><div><b>${LDM(remain)}</b><span>剩余未${kind === 'in' ? '还' : '收'}</span></div></div>
+      <div><b>${LDM(paid)}</b><span>已还</span></div><div><b>${remain > 0 ? neg : ''}${LDM(remain)}</b><span>剩余未${kind === 'in' ? '还' : '收'}</span></div></div>
   </div>
   <div class="ld2-list">${list.length ? list.map(d => {
     const p = ledDebtPaid(d), a = ldAcct(d.acct);
@@ -557,7 +563,7 @@ function ledDebtDetailHtml() {
   <div class="ld2-card ld2-detail">
     <div class="ld2-person"><span class="ld2-avatar" style="background:${a.color}">${esc(d.person.slice(0, 1))}</span><b>${esc(d.person)} ›</b></div>
     <div class="ld2-remain-label">剩余借款（本金 ${LDM((+d.principal || 0) - p.principal)} + 利息 ${LDM((+d.interest || 0) - p.interest)}）</div>
-    <div class="ld2-remain">${LDM(remain)}</div>
+    <div class="ld2-remain">${d.kind === 'in' && remain > 0 ? '-' : ''}${LDM(remain)}</div>
     <div class="ld2-prog-label">还款进度 <span>${LDM(paid)} / ${LDM(total)}</span></div>
     <div class="ld2-prog"><i style="width:${pct}%"></i></div>
     <div class="ld2-mini"><div><b>${LDM(total)}</b><span>总借入</span></div><div><b>${LDM(paid)}</b><span>已还</span></div><div><b>${LDM(p.interest)}</b><span>利息支出</span></div></div>
@@ -590,23 +596,40 @@ function ledAssetsHtml() {
     <button class="ld-tool" onclick="S.ledAssetForm=!S.ledAssetForm;render()">＋</button></div>
   <div class="ld2-asset-hero">
     <div class="ld2-asset-label">净资产 👁</div><div class="ld2-asset-num">${LDM(net)}</div>
-    <div class="ld2-asset-sub">总资产 ${LDM(total)}　总负债 ${LDM(debt)}</div>
+    <div class="ld2-asset-sub">总资产 ${LDM(total)}　总负债 ${debt > 0 ? '-' : ''}${LDM(debt)}</div>
   </div>
   <div class="ld2-grid2">
-    <div class="ld2-tile"><span>借入 <b>${LDM(debt)}</b></span><span>借出 <b>${LDM(ledDebtLent())}</b></span></div>
+    <div class="ld2-tile"><span>借入 <b>${debt > 0 ? '-' : ''}${LDM(debt)}</b></span><span>借出 <b>${LDM(ledDebtLent())}</b></span></div>
     <div class="ld2-tile"><span>报销 <b>0.00</b></span><span>未报销 <b>0.00</b></span></div>
     <div class="ld2-tile"><span>当前金价 <b>¥853.80 / 克</b></span><span>总克重 <b>0</b></span></div>
     <div class="ld2-tile"><span>定期 <b>0.00</b></span><span>即将到期 <b>0</b></span></div>
   </div>
   <div class="ld2-card"><div class="ld2-card-head">储蓄账户（${accts.length}）<b>${LDM(total)}</b></div>
-    ${accts.map(a => `<div class="ld2-acct"><span class="ld2-avatar sm" style="background:${a.color}">${a.icon}</span>
-      <b>${esc(a.name)}</b><span class="ld2-acct-bal">${LDM(ledAcctBal(a.name))}</span>
-      <button class="ld-del" onclick="ledAccountDel('${esc(a.name)}')">删</button></div>`).join('')}
+    ${accts.map(a => {
+      const editing = S.ledEditAcct === a.name;
+      return `<div class="ld2-acct"><span class="ld2-avatar sm" style="background:${a.color}">${a.icon}</span>
+        <b>${esc(a.name)}</b>
+        ${editing
+          ? `<input type="number" class="ld2-acct-input" id="ldAcctBalEdit" value="${ledAcctBal(a.name).toFixed(2)}" step="0.01"><button class="ld-mini" onclick="ledAccountSetBal('${esc(a.name)}')">存</button><button class="ld-mini ghost" onclick="S.ledEditAcct=null;render()">✕</button>`
+          : `<span class="ld2-acct-bal">${LDM(ledAcctBal(a.name))}</span><button class="ld-mini" onclick="S.ledEditAcct='${esc(a.name)}';render()">改</button><button class="ld-del" onclick="ledAccountDel('${esc(a.name)}')">删</button>`}
+      </div>`;
+    }).join('')}
     ${S.ledAssetForm ? `<div class="ld2-addacct">
       <input id="ldAcctName" placeholder="账户名称，如 交通银行" value="${esc(f.acctName || '')}" oninput="ldF().acctName=this.value">
       <input type="number" placeholder="初始余额" value="${esc(f.acctInit || '')}" oninput="ldF().acctInit=this.value">
       <button onclick="ledAccountAdd()">添加账户</button></div>` : `<button class="ld2-link" onclick="S.ledAssetForm=true;render()">＋ 添加账户</button>`}
   </div>`;
+}
+function ledAccountSetBal(name) {
+  const el = document.getElementById('ldAcctBalEdit');
+  if (!el || el.value === '') return;
+  const target = +el.value;
+  if (isNaN(target)) { alert('请输入有效余额'); return; }
+  const a = ledAccounts(), acc = a.find(x => x.name === name);
+  if (!acc) return;
+  const flow = ledAcctBal(name) - (+acc.init || 0);
+  acc.init = +(target - flow).toFixed(2);
+  ledSaveAccounts(a); S.ledEditAcct = null; render();
 }
 function ledAccountAdd() {
   const f = ldF(), name = (f.acctName || '').trim();

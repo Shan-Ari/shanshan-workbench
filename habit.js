@@ -82,7 +82,7 @@ function hbFreqLabel(h) {
 
 /* ---------- 打卡交互 ---------- */
 function hbTapCell(id, ds) {
-  if (ds > today()) return;
+  if (ds !== today()) return;
   const h = hbData().habits.find(x => x.id === id); if (!h) return;
   if (h.type === 'count') {
     const arr = store.g('habitValues', []);
@@ -105,6 +105,7 @@ function hbTapCell(id, ds) {
   hbInvalidate(); render();
 }
 function hbEditValue(id, ds) {
+  if (ds !== today()) return;
   const arr = store.g('habitValues', []);
   const rec = arr.find(x => x.habitId === id && x.date === ds);
   const s = prompt('输入 ' + ds + ' 的数值', rec ? String(rec.value) : '0');
@@ -119,18 +120,21 @@ function hbEditValue(id, ds) {
 function hbCardHtml(h, dates) {
   const t = hbTone(h.color);
   const cells = dates.map(ds => {
-    const st = hbState(h, ds), act = hbActiveOn(h, ds), future = ds > today();
+    const st = hbState(h, ds), act = hbActiveOn(h, ds), isToday = ds === today(), locked = !isToday;
     let inner, cls;
     if (h.type === 'count') {
-      inner = `<span class="hb-num" onclick="event.stopPropagation();hbEditValue('${h.id}','${ds}')">${st.v || 0}</span><small>${esc(h.unit || '')}</small>`;
+      const tap = locked ? '' : `onclick="event.stopPropagation();hbEditValue('${h.id}','${ds}')"`;
+      inner = `<span class="hb-num" ${tap}>${st.v || 0}</span><small>${esc(h.unit || '')}</small>`;
       cls = st.done ? 'done' : (st.part ? 'part' : '');
     } else {
       inner = st.done ? '✓' : (act ? '✕' : '–');
       cls = st.done ? 'done' : '';
     }
     if (!act) cls += ' off';
-    if (future) cls += ' future';
-    return `<div class="hb-cell ${cls}" title="${ds} · ${st.done ? '已达成' : '未达成'}" onclick="hbTapCell('${h.id}','${ds}')">${inner}</div>`;
+    if (locked) cls += ' locked';
+    if (isToday) cls += ' today';
+    const cellTap = locked ? '' : `onclick="hbTapCell('${h.id}','${ds}')"`;
+    return `<div class="hb-cell ${cls}" title="${ds} · ${st.done ? '已达成' : '未达成'}" ${cellTap}>${inner}</div>`;
   }).join('');
   return `<div class="hb-card" style="--hc:${t.base};--hi:${t.ink};--hs:${t.soft};--hm:${t.mid}">
     <div class="hb-line1"><span></span><span class="hb-name" title="${esc(h.question || h.note || h.name)}" onclick="hbEdit('${h.id}')">${esc(h.name)}</span></div>
@@ -155,7 +159,7 @@ function hbListHtml() {
   </div>
   ${S.hbFilterOpen ? `<div class="hb-filterbar">${groups.map(g => `<button class="hb-chip ${filter === g ? 'on' : ''}" onclick="S.hbFilter='${esc(g)}';render()">${esc(g)}</button>`).join('')}</div>` : ''}
   ${hbOverviewHtml(habits, dates)}
-  <div class="hb-week"><span></span><div class="hb-wdays">${dates.map(ds => `<div class="hb-wd">周${HB_WD[new Date(ds + 'T00:00:00').getDay()]}<b>${+ds.slice(8)}</b></div>`).join('')}</div></div>
+  <div class="hb-week"><span></span><div class="hb-wdays">${dates.map(ds => `<div class="hb-wd ${ds === today() ? 'today' : ''}"><b>${+ds.slice(8)}</b></div>`).join('')}</div></div>
   <div class="hb-list">
     ${shown.length ? shown.map(h => hbCardHtml(h, dates)).join('') : '<div class="hb-empty">还没有习惯，点右上角 ＋ 新建一个吧～</div>'}
   </div>
